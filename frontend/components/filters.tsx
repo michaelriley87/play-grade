@@ -1,17 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Chip, Button } from '@mantine/core';
+import { Chip, TextInput, Button } from '@mantine/core';
 
 export default function Filters() {
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
-  const viewOptions = ['Public Posts', 'Followed Posts'];
+  const viewOptions = ['All Users', 'Followed Users'];
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments'];
   const [selectedFilters, setSelectedFilters] = useState(categoryOptions);
   const [view, setView] = useState(viewOptions[0]);
   const [ageRange, setAgeRange] = useState(ageOptions[4]);
   const [sortBy, setSortBy] = useState(sortOptions[0]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleFilterChange = (values: string[]) => {
     if (values.length === 0) {
@@ -22,9 +23,9 @@ export default function Filters() {
   };
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {/* Category Filters */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
         <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
           {categoryOptions.map((option) => (
             <Chip key={option} value={option}>
@@ -35,7 +36,7 @@ export default function Filters() {
       </div>
 
       {/* View Options */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
         <Chip.Group multiple={false} value={view} onChange={setView}>
           {viewOptions.map((option) => (
             <Chip key={option} value={option}>
@@ -46,10 +47,10 @@ export default function Filters() {
       </div>
 
       {/* Age Range */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
         <Chip.Group multiple={false} value={ageRange} onChange={setAgeRange}>
           {ageOptions.map((option) => (
-            <Chip key={option} value={option} checked={false}>
+            <Chip key={option} value={option}>
               {option}
             </Chip>
           ))}
@@ -57,7 +58,7 @@ export default function Filters() {
       </div>
 
       {/* Sort By */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
         <Chip.Group multiple={false} value={sortBy} onChange={setSortBy}>
           {sortOptions.map((option) => (
             <Chip key={option} value={option}>
@@ -66,6 +67,18 @@ export default function Filters() {
           ))}
         </Chip.Group>
       </div>
+
+      {/* Search Textbox */}
+      <TextInput
+        placeholder="Search by query..."
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.currentTarget.value)}
+      />
+
+      {/* Update Results Button */}
+      <Button>
+        Update Results
+      </Button>
     </div>
   );
 }

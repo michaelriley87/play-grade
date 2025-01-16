@@ -1,14 +1,20 @@
+
+from datetime import datetime, timedelta, timezone
+from bcrypt import checkpw, hashpw, gensalt
+from psycopg2.extras import RealDictCursor
+from werkzeug.utils import secure_filename
 from flask import Flask, request, jsonify
 from flasgger import Swagger
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from bcrypt import checkpw, hashpw, gensalt
-from datetime import datetime, timedelta, timezone
-import jwt
+from flask_cors import CORS
 from functools import wraps
+import psycopg2
+import jwt
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'action_comedy_crime_thriller'
+app.config['UPLOAD_FOLDER'] = './uploads'
+CORS(app)
 
 swagger = Swagger(app, template={
     "swagger": "2.0",
@@ -356,14 +362,15 @@ def create_post(decoded_token):
     security:
       - Bearer: []
     """
-    data = request.json
     user_id = decoded_token['user_id']
 
-    # Extract post data
-    title = data.get('title')
-    body = data.get('body')
-    category = data.get('category')
-    image_url = data.get('image_url')  # Optional
+    # Parse form data
+    title = request.form.get('title')
+    body = request.form.get('body')
+    category = request.form.get('category')
+    file = request.files.get('image') 
+    category_mapping = {'Games': 'G', 'Film/TV': 'F', 'Music': 'M'}
+    category = category_mapping.get(category)
 
     # Validate required fields
     if not title or not body or not category:
@@ -372,6 +379,17 @@ def create_post(decoded_token):
         return jsonify({"error": "Body must not exceed 300 characters"}), 400
     if category not in ['G', 'F', 'M']:
         return jsonify({"error": "Invalid category. Must be 'G', 'F', or 'M'"}), 400
+
+    # Handle file upload
+    image_url = None
+    if file:
+        if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            image_url = f"/uploads/{filename}"
+        else:
+            return jsonify({"error": "Invalid file type. Allowed: png, jpg, jpeg, gif"}), 400
 
     try:
         # Insert the post into the database
