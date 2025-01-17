@@ -5,10 +5,10 @@ import Feed from '@/components/feed';
 
 export default function HomePage() {
   return (
-    <div>
+    <div style={{ height: '100vh', width: '100vw' }}>
       <div style={{ width: '550px', margin: '0 auto' }}>
         <Header />
-        <CreatePost />
+        <Filters />
       </div>
     </div>
   );

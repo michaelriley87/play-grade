@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { TextInput, PasswordInput, Button } from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -13,6 +14,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const router = useRouter();
 
   const handleRegister = async () => {
     if (!username || !email || !password || !confirmPassword) {
@@ -43,7 +45,7 @@ export default function RegisterPage() {
         setPassword('');
         setConfirmPassword('');
         setTimeout(() => {
-          window.location.href = '/login';
+          router.push('/login');
         }, 2000);
       } else {
         toast.error(data.error || 'Registration failed');
@@ -98,12 +100,12 @@ export default function RegisterPage() {
         Register
       </Button>
 
-        <div style={{ marginTop: '15px', textAlign: 'center' }}>
+      <div style={{ marginTop: '15px', textAlign: 'center' }}>
         <span>Already have an account? </span>
         <Link href="/login">
-            Login
+          Login
         </Link>
-        </div>
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { TextInput, PasswordInput, Button } from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -11,6 +12,7 @@ const API_URL = 'http://127.0.0.1:5000';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -32,6 +34,9 @@ export default function LoginPage() {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         toast.success('Login successful!');
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
       } else {
         toast.error(data.error || 'Invalid credentials');
       }
