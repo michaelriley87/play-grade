@@ -10,10 +10,12 @@ from functools import wraps
 import psycopg2
 import jwt
 import os
+import uuid
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'action_comedy_crime_thriller'
 app.config['UPLOAD_FOLDER'] = './uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 CORS(app)
 
 swagger = Swagger(app, template={
@@ -384,10 +386,13 @@ def create_post(decoded_token):
     image_url = None
     if file:
         if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            # Generate a unique filename
+            file_extension = file.filename.rsplit('.', 1)[1].lower()
+            unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            # Save the file
             file.save(filepath)
-            image_url = f"/uploads/{filename}"
+            image_url = f"/uploads/{unique_filename}"
         else:
             return jsonify({"error": "Invalid file type. Allowed: png, jpg, jpeg, gif"}), 400
 
