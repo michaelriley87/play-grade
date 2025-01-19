@@ -495,7 +495,7 @@ def get_posts():
           type: array
           items:
             type: string
-          example: ["Games", "Film/TV"]
+          example: ["🎮 Games", "🎥 Film/TV, 🎵 Music"]
       - name: users
         in: query
         required: false
@@ -535,11 +535,19 @@ def get_posts():
       500:
         description: Server error.
     """
-    # Parse query parameters
-    category_mapping = {'Games': 'G', 'Film/TV': 'F', 'Music': 'M'}
+    # Category mapping
+    category_mapping = {
+        "🎮 Games": "G",
+        "🎥 Film/TV": "F",
+        "🎵 Music": "M",
+    }
+
     try:
-        categories = request.args.getlist('categories')
-        categories = [category_mapping.get(cat) for cat in categories if category_mapping.get(cat)]
+        # Parse query parameters
+        raw_categories = request.args.get('categories', '')  # Fetch as a single string
+        categories = [cat.strip() for cat in raw_categories.split(',') if cat.strip()]  # Split and clean categories
+        categories = [category_mapping.get(cat) for cat in categories if category_mapping.get(cat)] # Map categories to backend-friendly codes
+
         users = request.args.get('users', 'All Users')
         age_range = request.args.get('ageRange', 'All')
         sort_by = request.args.get('sortBy', 'Newest')
@@ -555,12 +563,12 @@ def get_posts():
 
         # Filter by categories
         if categories:
-            query += " AND category = ANY(%s)"
-            params.append(categories)
+            placeholders = ', '.join(['%s'] * len(categories))
+            query += f" AND category IN ({placeholders})"
+            params.extend(categories)
 
         # Filter by user type
         if users == 'Followed Users':
-            # Example: Replace with a query to fetch followed user IDs
             followed_user_ids = [1, 2, 3]  # Example hardcoded values
             query += " AND poster_id = ANY(%s)"
             params.append(followed_user_ids)
@@ -605,6 +613,7 @@ def get_posts():
     finally:
         cur.close()
         conn.close()
+
 
 # Like post or comment
 @app.route('/likes', methods=['POST'])
