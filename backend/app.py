@@ -2,7 +2,6 @@
 from datetime import datetime, timedelta, timezone
 from bcrypt import checkpw, hashpw, gensalt
 from psycopg2.extras import RealDictCursor
-from werkzeug.utils import secure_filename
 from flask import Flask, request, jsonify
 from flasgger import Swagger
 from flask_cors import CORS
@@ -471,6 +470,134 @@ def delete_post(decoded_token, post_id):
         conn.commit()
 
         return jsonify({"message": "Post deleted successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/posts', methods=['GET'])
+def get_posts():
+    """
+    Retrieve posts with optional filters.
+    ---
+    tags:
+      - Posts
+    description: This endpoint retrieves posts based on filters such as categories, users, age range, and search queries. Posts can also be sorted by newest, most liked, or most commented.
+    parameters:
+      - name: categories
+        in: query
+        required: false
+        description: Filter posts by categories.
+        schema:
+          type: array
+          items:
+            type: string
+          example: ["Games", "Film/TV"]
+      - name: users
+        in: query
+        required: false
+        description: Filter by user type (All Users or Followed Users).
+        schema:
+          type: string
+          enum: ["All Users", "Followed Users"]
+          example: "Followed Users"
+      - name: ageRange
+        in: query
+        required: false
+        description: Filter posts by age range.
+        schema:
+          type: string
+          enum: ["Today", "Week", "Month", "Year", "All"]
+          example: "Week"
+      - name: sortBy
+        in: query
+        required: false
+        description: Sort posts by criteria.
+        schema:
+          type: string
+          enum: ["Newest", "Most Liked", "Most Comments"]
+          example: "Most Liked"
+      - name: searchQuery
+        in: query
+        required: false
+        description: Search posts by title or body.
+        schema:
+          type: string
+          example: "example search term"
+    responses:
+      200:
+        description: Posts retrieved successfully.
+      400:
+        description: Invalid input.
+      500:
+        description: Server error.
+    """
+    # Parse query parameters
+    category_mapping = {'Games': 'G', 'Film/TV': 'F', 'Music': 'M'}
+    try:
+        categories = request.args.getlist('categories')
+        categories = [category_mapping.get(cat) for cat in categories if category_mapping.get(cat)]
+        users = request.args.get('users', 'All Users')
+        age_range = request.args.get('ageRange', 'All')
+        sort_by = request.args.get('sortBy', 'Newest')
+        search_query = request.args.get('searchQuery', '')
+
+        # Start building the SQL query
+        query = """
+            SELECT post_id, poster_id, title, category, body, image_url, like_count, reply_count, created_at
+            FROM posts
+            WHERE 1=1
+        """
+        params = []
+
+        # Filter by categories
+        if categories:
+            query += " AND category = ANY(%s)"
+            params.append(categories)
+
+        # Filter by user type
+        if users == 'Followed Users':
+            # Example: Replace with a query to fetch followed user IDs
+            followed_user_ids = [1, 2, 3]  # Example hardcoded values
+            query += " AND poster_id = ANY(%s)"
+            params.append(followed_user_ids)
+
+        # Filter by age range
+        if age_range != 'All':
+            time_intervals = {
+                'Today': '1 day',
+                'Week': '7 days',
+                'Month': '30 days',
+                'Year': '365 days'
+            }
+            if age_range in time_intervals:
+                query += " AND created_at >= NOW() - INTERVAL %s"
+                params.append(time_intervals[age_range])
+
+        # Filter by search query
+        if search_query:
+            query += " AND (LOWER(title) LIKE %s OR LOWER(body) LIKE %s)"
+            search_term = f"%{search_query.lower()}%"
+            params.extend([search_term, search_term])
+
+        # Sorting
+        sort_columns = {
+            'Newest': 'created_at DESC',
+            'Most Liked': 'like_count DESC',
+            'Most Comments': 'reply_count DESC'
+        }
+        query += f" ORDER BY {sort_columns.get(sort_by, 'created_at DESC')}"
+
+        # Execute the query
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(query, tuple(params))
+        posts = cur.fetchall()
+
+        return jsonify(posts), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

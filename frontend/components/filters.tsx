@@ -3,14 +3,24 @@
 import { useState } from 'react';
 import { Chip, TextInput, Button, Transition } from '@mantine/core';
 
-export default function Filters() {
+interface FiltersProps {
+  onUpdateFilters: (filters: {
+    categories: string[];
+    users: string;
+    ageRange: string;
+    sortBy: string;
+    searchQuery: string;
+  }) => void;
+}
+
+export default function Filters({ onUpdateFilters }: FiltersProps) {
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
   const viewOptions = ['All Users', 'Followed Users'];
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments'];
 
   const [selectedFilters, setSelectedFilters] = useState<string[]>(categoryOptions);
-  const [view, setView] = useState(viewOptions[0]);
+  const [users, setUsers] = useState(viewOptions[0]);
   const [ageRange, setAgeRange] = useState(ageOptions[4]);
   const [sortBy, setSortBy] = useState(sortOptions[0]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,14 +32,18 @@ export default function Filters() {
     } else {
       setSelectedFilters(values);
     }
-
-    if (values.length > 0) {
-      setShowAdditionalOptions(true);
-    }
+    setShowAdditionalOptions(true);
   };
 
   const handleUpdateResults = () => {
     setShowAdditionalOptions(false);
+    onUpdateFilters({
+      categories: selectedFilters,
+      users,
+      ageRange,
+      sortBy,
+      searchQuery,
+    });
   };
 
   return (
@@ -57,7 +71,7 @@ export default function Filters() {
             <div style={{ ...styles, paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {/* View Options */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                <Chip.Group multiple={false} value={view} onChange={setView}>
+                <Chip.Group multiple={false} value={users} onChange={setUsers}>
                   {viewOptions.map((option) => (
                     <Chip key={option} value={option}>
                       {option}

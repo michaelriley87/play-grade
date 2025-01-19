@@ -1,57 +1,76 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Post from './post';
-import { Pagination } from '@mantine/core';
 
-type PostData = {
-  id: number;
-  username: string;
-  profileImage: string;
+const API_URL = 'http://127.0.0.1:5000';
+
+interface FeedProps {
+  filters: {
+    categories: string[];
+    users: string;
+    ageRange: string;
+    sortBy: string;
+    searchQuery: string;
+  };
+}
+
+interface PostData {
+  id: string;
   title: string;
   content: string;
-  postImage?: string;
+  category: string;
+  createdAt: string;
   likes: number;
-  comments: number;
-};
+}
 
-export default function Feed() {
+export default function Feed({ filters }: FeedProps) {
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 10;
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const response = await fetch(`/api/posts?page=${currentPage}&limit=${postsPerPage}`);
-      const data = await response.json();
-      setPosts(data.posts);
+      setIsLoading(true);
+
+      try {
+        const queryParams = new URLSearchParams({
+          categories: filters.categories.join(','),
+          users: filters.users,
+          ageRange: filters.ageRange,
+          sortBy: filters.sortBy,
+          searchQuery: filters.searchQuery,
+        });
+        console.log('Query Parameters:', queryParams.toString());
+
+        const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setPosts(data);
+        } else {
+          toast.error(data.error || 'Failed to retrieve posts');
+        }
+      } catch {
+        toast.error('An error occurred while fetching posts');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchPosts();
-  }, [currentPage]);
+  }, [filters]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!isLoading && posts.length === 0) return <div>No posts found.</div>;
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <ToastContainer position="bottom-center" />
       {posts.map((post) => (
-        <Post
-          key={post.id}
-          username={post.username}
-          profileImage={post.profileImage}
-          title={post.title}
-          content={post.content}
-          postImage={post.postImage}
-          likes={post.likes}
-          comments={post.comments}
-        />
+        <Post key={post.id} {...post} />
       ))}
-
-      {/* Pagination */}
-      <Pagination
-        total={10} // Total number of pages
-        value={currentPage}
-        onChange={setCurrentPage}
-        style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}
-      />
     </div>
   );
 }
