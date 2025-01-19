@@ -18,12 +18,12 @@ interface FeedProps {
 }
 
 interface PostData {
-  id: string;
+  post_id: string;
   title: string;
-  content: string;
+  body: string;
   category: string;
-  createdAt: string;
-  likes: number;
+  created_at: string;
+  like_count: number;
 }
 
 export default function Feed({ filters }: FeedProps) {
@@ -49,6 +49,7 @@ export default function Feed({ filters }: FeedProps) {
 
         if (response.ok) {
           setPosts(data);
+          console.log(data);
         } else {
           toast.error(data.error || 'Failed to retrieve posts');
         }
@@ -69,7 +70,7 @@ export default function Feed({ filters }: FeedProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <ToastContainer position="bottom-center" />
       {posts.map((post) => (
-        <Post key={post.id} {...post} />
+        <Post key={post.post_id} {...post} />
       ))}
     </div>
   );
