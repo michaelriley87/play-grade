@@ -3,6 +3,7 @@
 import Header from '@/components/header';
 import Filters from '@/components/filters';
 import Feed from '@/components/feed';
+import CreatePost from '@/components/create-post';
 import { useState } from 'react';
 
 export default function HomePage() {
@@ -24,6 +25,7 @@ export default function HomePage() {
         <Header />
         <Filters onUpdateFilters={handleUpdateFilters} />
         <Feed filters={filters} />
+        <CreatePost />
       </div>
     </div>
   );

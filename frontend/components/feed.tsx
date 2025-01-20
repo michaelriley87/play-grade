@@ -24,6 +24,7 @@ interface PostData {
   category: string;
   created_at: string;
   like_count: number;
+  image_url?: string; // Added the image_url field
 }
 
 export default function Feed({ filters }: FeedProps) {
@@ -49,12 +50,13 @@ export default function Feed({ filters }: FeedProps) {
 
         if (response.ok) {
           setPosts(data);
-          console.log(data);
+          console.log('Fetched Posts:', data);
         } else {
           toast.error(data.error || 'Failed to retrieve posts');
         }
-      } catch {
+      } catch (error) {
         toast.error('An error occurred while fetching posts');
+        console.error(error);
       } finally {
         setIsLoading(false);
       }
