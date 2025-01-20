@@ -429,7 +429,8 @@ def create_post(decoded_token):
     body = request.form.get('body')
     category = request.form.get('category')
     file = request.files.get('image') 
-    category_mapping = {'Games': 'G', 'Film/TV': 'F', 'Music': 'M'}
+    print(f"Category received: {category}")
+    category_mapping = {'🎮 Games': 'G', '🎥 Film/TV': 'F', '🎵 Music': 'M'}
     category = category_mapping.get(category)
 
     # Validate required fields
@@ -594,15 +595,9 @@ def get_posts():
       500:
         description: Server error.
     """
-    # Category mapping
-    category_mapping = {
-        "🎮 Games": "G",
-        "🎥 Film/TV": "F",
-        "🎵 Music": "M",
-    }
-
     try:
         # Parse query parameters
+        category_mapping = { "🎮 Games": "G", "🎥 Film/TV": "F", "🎵 Music": "M" }
         raw_categories = request.args.get('categories', '')  # Fetch as a single string
         categories = [cat.strip() for cat in raw_categories.split(',') if cat.strip()]  # Split and clean categories
         categories = [category_mapping.get(cat) for cat in categories if category_mapping.get(cat)] # Map categories to backend-friendly codes

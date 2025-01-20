@@ -8,14 +8,18 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function CreatePost() {
+interface CreatePostProps {
+  onClose: () => void;
+}
+
+export default function CreatePost({ onClose }: CreatePostProps) {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [body, setBody] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const categoryOptions = ['Games', 'Film/TV', 'Music'];
+  const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
 
   const handleImageChange = async (file: File | null) => {
     if (!file) {
@@ -84,6 +88,7 @@ export default function CreatePost() {
         setBody('');
         setImage(null);
         setImagePreview(null);
+        onClose();
       } else if (response.status === 401) {
         toast.error('Session expired. Please log in again.');
         setTimeout(() => {
@@ -98,8 +103,9 @@ export default function CreatePost() {
   };
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', padding: '15px', border: '1px solid #ddd', borderRadius: '10px' }}>
       <ToastContainer position="bottom-center" />
+
       <TextInput
         label="Title"
         placeholder="Enter title (max 100 characters)"
@@ -154,7 +160,7 @@ export default function CreatePost() {
         />
       )}
 
-      <Button onClick={handleSubmit} style={{ marginTop: '15px' }}>
+      <Button onClick={handleSubmit} style={{ marginTop: '15px' }} fullWidth>
         Create Post
       </Button>
     </div>
