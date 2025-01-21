@@ -1,11 +1,16 @@
-import "@mantine/core/styles.css";
-import React from "react";
-import { MantineProvider, ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
-import { theme } from "../theme";
+import '@mantine/core/styles.css';
+import React from 'react';
+import {
+  MantineProvider,
+  ColorSchemeScript,
+  mantineHtmlProps,
+} from '@mantine/core';
+import { theme } from '../theme';
 
 export const metadata = {
-  title: "Play Grade",
-  description: "Social media platform for the critical discussion of games, film/tv and music.",
+  title: 'Play Grade',
+  description:
+    'Social media platform for the critical discussion of games, film/tv and music.',
 };
 
 export default function RootLayout({ children }: { children: any }) {

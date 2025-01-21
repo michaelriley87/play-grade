@@ -1,6 +1,5 @@
-"use client";
+'use client';
 
-import { createTheme } from "@mantine/core";
+import { createTheme } from '@mantine/core';
 
-export const theme = createTheme({
-});
+export const theme = createTheme({});

@@ -10,7 +10,14 @@ export default function Account({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div style={{ width: '100%', padding: '15px', border: '1px solid #ddd', borderRadius: '10px' }}>
+    <div
+      style={{
+        width: '100%',
+        padding: '15px',
+        border: '1px solid #ddd',
+        borderRadius: '10px',
+      }}
+    >
       <h2>Account</h2>
       <p>Welcome to your account management. More features coming soon!</p>
       <Button

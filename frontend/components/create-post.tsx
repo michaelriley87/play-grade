@@ -1,7 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { TextInput, Textarea, Button, FileInput, Image, Chip } from '@mantine/core';
+import {
+  TextInput,
+  Textarea,
+  Button,
+  FileInput,
+  Image,
+  Chip,
+} from '@mantine/core';
 import imageCompression from 'browser-image-compression';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -55,20 +62,20 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       toast.error('Title, category, body, and image are required');
       return;
     }
-  
+
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error('You must be logged in to create a post');
       return;
     }
-  
+
     try {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('category', category!);
       formData.append('body', body);
       formData.append('image', image); // Ensure image is always appended
-  
+
       const response = await fetch(`${API_URL}/posts`, {
         method: 'POST',
         headers: {
@@ -76,9 +83,9 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         },
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         toast.success('Post created successfully!');
         setTitle('');
@@ -99,10 +106,16 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       toast.error('Failed to create post');
     }
   };
-  
 
   return (
-    <div style={{ width: '100%', padding: '15px', border: '1px solid #ddd', borderRadius: '10px' }}>
+    <div
+      style={{
+        width: '100%',
+        padding: '15px',
+        border: '1px solid #ddd',
+        borderRadius: '10px',
+      }}
+    >
       <ToastContainer position="bottom-center" />
 
       <TextInput
@@ -114,7 +127,14 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       />
 
       <div style={{ marginTop: '10px' }}>
-        <label style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px', display: 'block' }}>
+        <label
+          style={{
+            fontWeight: 'bold',
+            fontSize: '14px',
+            marginBottom: '5px',
+            display: 'block',
+          }}
+        >
           Select Category
         </label>
         <Chip.Group
@@ -157,11 +177,14 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         />
       )}
 
-      <Button 
-        onClick={handleSubmit} 
-        style={{ marginTop: '15px' }} 
-        fullWidth 
-        disabled={!localStorage.getItem('token')} // Disable if no token
+      <Button
+        onClick={handleSubmit}
+        style={{ marginTop: '15px' }}
+        fullWidth
+        disabled={!localStorage.getItem('token')}
+        title={
+          !localStorage.getItem('token') ? 'Please log in to create a post' : ''
+        }
       >
         Create Post
       </Button>

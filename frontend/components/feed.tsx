@@ -44,7 +44,9 @@ export default function Feed({ filters }: FeedProps) {
           searchQuery: filters.searchQuery,
         });
 
-        const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`);
+        const response = await fetch(
+          `${API_URL}/posts?${queryParams.toString()}`
+        );
         const data = await response.json();
 
         if (response.ok) {

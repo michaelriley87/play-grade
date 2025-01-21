@@ -42,7 +42,14 @@ export default function HomePage() {
         <Header />
 
         {/* Buttons for toggling components */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '10px',
+            marginBottom: '10px',
+          }}
+        >
           <Button
             onClick={() => toggleComponent('createPost')}
             variant={isActive('createPost') ? 'outline' : 'filled'}

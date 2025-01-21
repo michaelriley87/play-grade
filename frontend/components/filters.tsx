@@ -15,13 +15,19 @@ interface FiltersProps {
   onClose: () => void;
 }
 
-export default function Filters({ currentFilters, onUpdateFilters, onClose }: FiltersProps) {
+export default function Filters({
+  currentFilters,
+  onUpdateFilters,
+  onClose,
+}: FiltersProps) {
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
   const viewOptions = ['All Users', 'Followed Users'];
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments'];
 
-  const [selectedFilters, setSelectedFilters] = useState<string[]>(currentFilters.categories);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>(
+    currentFilters.categories
+  );
   const [users, setUsers] = useState(currentFilters.users);
   const [ageRange, setAgeRange] = useState(currentFilters.ageRange);
   const [sortBy, setSortBy] = useState(currentFilters.sortBy);
@@ -37,7 +43,9 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
 
   const handleFilterChange = (values: string[]) => {
     if (values.length === 0) {
-      const remainingCategories = categoryOptions.filter((option) => !selectedFilters.includes(option));
+      const remainingCategories = categoryOptions.filter(
+        (option) => !selectedFilters.includes(option)
+      );
       setSelectedFilters(remainingCategories);
     } else {
       setSelectedFilters(values);
@@ -69,7 +77,11 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
     >
       {/* Category Filters */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
+        <Chip.Group
+          multiple
+          value={selectedFilters}
+          onChange={handleFilterChange}
+        >
           {categoryOptions.map((option) => (
             <Chip key={option} value={option}>
               {option}
@@ -85,7 +97,9 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
             <Chip
               key={option}
               value={option}
-              disabled={option === 'Followed Users' && !localStorage.getItem('token')}
+              disabled={
+                option === 'Followed Users' && !localStorage.getItem('token')
+              }
             >
               {option}
             </Chip>
@@ -124,7 +138,11 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
       />
 
       {/* Update Results Button */}
-      <Button fullWidth onClick={handleUpdateResults} style={{ marginTop: '10px' }}>
+      <Button
+        fullWidth
+        onClick={handleUpdateResults}
+        style={{ marginTop: '10px' }}
+      >
         Update Results
       </Button>
     </div>

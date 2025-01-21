@@ -12,9 +12,24 @@ interface PostProps {
   image_url?: string;
 }
 
-export default function Post({ post_id, title, body, category, created_at, like_count, image_url }: PostProps) {
+export default function Post({
+  post_id,
+  title,
+  body,
+  category,
+  created_at,
+  like_count,
+  image_url,
+}: PostProps) {
   return (
-    <div style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px', marginBottom: '10px' }}>
+    <div
+      style={{
+        border: '1px solid #ccc',
+        padding: '10px',
+        borderRadius: '5px',
+        marginBottom: '10px',
+      }}
+    >
       <h3>{title}</h3>
       <p>{body}</p>
       {image_url && (

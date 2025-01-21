@@ -19,24 +19,25 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
       toast.error('All fields are required');
       return;
     }
-  
+
     const endpoint = activeTab === 'login' ? '/users/login' : '/users/register';
-    const body = activeTab === 'login' ? { email, password } : { name, email, password };
-  
+    const body =
+      activeTab === 'login' ? { email, password } : { name, email, password };
+
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         if (activeTab === 'login') {
           localStorage.setItem('token', data.token);
           toast.success('Login successful!');
-  
+
           setTimeout(() => {
             window.location.reload();
           }, 2000);
@@ -51,10 +52,16 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
       toast.error('Failed to process your request');
     }
   };
-  
 
   return (
-    <div style={{ width: '100%', padding: '15px', border: '1px solid #ddd', borderRadius: '10px' }}>
+    <div
+      style={{
+        width: '100%',
+        padding: '15px',
+        border: '1px solid #ddd',
+        borderRadius: '10px',
+      }}
+    >
       <ToastContainer position="bottom-center" />
 
       <Tabs
