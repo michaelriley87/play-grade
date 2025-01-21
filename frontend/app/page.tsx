@@ -4,7 +4,9 @@ import Header from '@/components/header';
 import Filters from '@/components/filters';
 import Feed from '@/components/feed';
 import CreatePost from '@/components/create-post';
-import { useState } from 'react';
+import LoginRegister from '@/components/login-register';
+import Account from '@/components/account';
+import { useState, useEffect } from 'react';
 import { Button, Transition } from '@mantine/core';
 
 export default function HomePage() {
@@ -16,14 +18,20 @@ export default function HomePage() {
     searchQuery: '',
   });
 
-  const [activeComponent, setActiveComponent] = useState<string | null>(null);
+  const [activeComponent, setActiveComponent] = useState<string>(''); // Use empty string
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setHasToken(!!token); // Update token presence
+  }, []);
 
   const handleUpdateFilters = (newFilters: typeof filters) => {
     setFilters(newFilters);
   };
 
   const toggleComponent = (component: string) => {
-    setActiveComponent((prev) => (prev === component ? null : component));
+    setActiveComponent((prev) => (prev === component ? '' : component)); // Empty string instead of null
   };
 
   const isActive = (component: string) => activeComponent === component;
@@ -81,7 +89,7 @@ export default function HomePage() {
           >
             {(styles) => (
               <div style={{ ...styles }}>
-                <CreatePost onClose={() => toggleComponent('createPost')} />
+                <CreatePost onClose={() => toggleComponent('')} />
               </div>
             )}
           </Transition>
@@ -98,13 +106,13 @@ export default function HomePage() {
                 <Filters
                   currentFilters={filters}
                   onUpdateFilters={handleUpdateFilters}
-                  onClose={() => toggleComponent('filters')}
+                  onClose={() => toggleComponent('')}
                 />
               </div>
             )}
           </Transition>
 
-          {/* Account Placeholder */}
+          {/* Account or Login/Register */}
           <Transition
             mounted={activeComponent === 'account'}
             transition="slide-down"
@@ -113,7 +121,11 @@ export default function HomePage() {
           >
             {(styles) => (
               <div style={{ ...styles }}>
-                <div>Account Component Placeholder</div>
+                {hasToken ? (
+                  <Account onClose={() => toggleComponent('')} />
+                ) : (
+                  <LoginRegister onClose={() => toggleComponent('')} />
+                )}
               </div>
             )}
           </Transition>

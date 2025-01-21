@@ -24,7 +24,7 @@ interface PostData {
   category: string;
   created_at: string;
   like_count: number;
-  image_url?: string; // Added the image_url field
+  image_url?: string;
 }
 
 export default function Feed({ filters }: FeedProps) {
@@ -43,20 +43,17 @@ export default function Feed({ filters }: FeedProps) {
           sortBy: filters.sortBy,
           searchQuery: filters.searchQuery,
         });
-        console.log('Query Parameters:', queryParams.toString());
 
         const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`);
         const data = await response.json();
 
         if (response.ok) {
           setPosts(data);
-          console.log('Fetched Posts:', data);
         } else {
           toast.error(data.error || 'Failed to retrieve posts');
         }
       } catch (error) {
         toast.error('An error occurred while fetching posts');
-        console.error(error);
       } finally {
         setIsLoading(false);
       }

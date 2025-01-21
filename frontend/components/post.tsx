@@ -13,8 +13,6 @@ interface PostProps {
 }
 
 export default function Post({ post_id, title, body, category, created_at, like_count, image_url }: PostProps) {
-  console.log('Post Props:', { post_id, title, body, category, created_at, like_count, image_url });
-
   return (
     <div style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px', marginBottom: '10px' }}>
       <h3>{title}</h3>

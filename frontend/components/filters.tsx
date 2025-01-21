@@ -36,7 +36,12 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
   }, [currentFilters]);
 
   const handleFilterChange = (values: string[]) => {
-    setSelectedFilters(values.length === 0 ? categoryOptions : values);
+    if (values.length === 0) {
+      const remainingCategories = categoryOptions.filter((option) => !selectedFilters.includes(option));
+      setSelectedFilters(remainingCategories);
+    } else {
+      setSelectedFilters(values);
+    }
   };
 
   const handleUpdateResults = () => {
@@ -57,72 +62,71 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
         padding: '15px',
         border: '1px solid #ddd',
         borderRadius: '10px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* Category Filters */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-          <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
-            {categoryOptions.map((option) => (
-              <Chip key={option} value={option}>
-                {option}
-              </Chip>
-            ))}
-          </Chip.Group>
-        </div>
-
-        <div style={{ paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {/* View Options */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-            <Chip.Group multiple={false} value={users} onChange={setUsers}>
-              {viewOptions.map((option) => (
-                <Chip
-                  key={option}
-                  value={option}
-                  disabled={option === 'Followed Users' && !localStorage.getItem('token')}
-                >
-                  {option}
-                </Chip>
-              ))}
-            </Chip.Group>
-          </div>
-
-          {/* Age Range */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-            <Chip.Group multiple={false} value={ageRange} onChange={setAgeRange}>
-              {ageOptions.map((option) => (
-                <Chip key={option} value={option}>
-                  {option}
-                </Chip>
-              ))}
-            </Chip.Group>
-          </div>
-
-          {/* Sort By */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-            <Chip.Group multiple={false} value={sortBy} onChange={setSortBy}>
-              {sortOptions.map((option) => (
-                <Chip key={option} value={option}>
-                  {option}
-                </Chip>
-              ))}
-            </Chip.Group>
-          </div>
-
-          {/* Search Textbox */}
-          <TextInput
-            label="Search"
-            placeholder="Search by query..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.currentTarget.value)}
-          />
-
-          {/* Update Results Button */}
-          <Button fullWidth onClick={handleUpdateResults} style={{ marginTop: '10px' }}>
-            Update Results
-          </Button>
-        </div>
+      {/* Category Filters */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+        <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
+          {categoryOptions.map((option) => (
+            <Chip key={option} value={option}>
+              {option}
+            </Chip>
+          ))}
+        </Chip.Group>
       </div>
+
+      {/* View Options */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+        <Chip.Group multiple={false} value={users} onChange={setUsers}>
+          {viewOptions.map((option) => (
+            <Chip
+              key={option}
+              value={option}
+              disabled={option === 'Followed Users' && !localStorage.getItem('token')}
+            >
+              {option}
+            </Chip>
+          ))}
+        </Chip.Group>
+      </div>
+
+      {/* Age Range */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+        <Chip.Group multiple={false} value={ageRange} onChange={setAgeRange}>
+          {ageOptions.map((option) => (
+            <Chip key={option} value={option}>
+              {option}
+            </Chip>
+          ))}
+        </Chip.Group>
+      </div>
+
+      {/* Sort By */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+        <Chip.Group multiple={false} value={sortBy} onChange={setSortBy}>
+          {sortOptions.map((option) => (
+            <Chip key={option} value={option}>
+              {option}
+            </Chip>
+          ))}
+        </Chip.Group>
+      </div>
+
+      {/* Search Textbox */}
+      <TextInput
+        label="Search"
+        placeholder="Search by query..."
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.currentTarget.value)}
+      />
+
+      {/* Update Results Button */}
+      <Button fullWidth onClick={handleUpdateResults} style={{ marginTop: '10px' }}>
+        Update Results
+      </Button>
     </div>
   );
 }

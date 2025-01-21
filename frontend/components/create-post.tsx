@@ -51,26 +51,24 @@ export default function CreatePost({ onClose }: CreatePostProps) {
   };
 
   const handleSubmit = async () => {
-    if (!title || !category || !body) {
-      toast.error('Title, category, and body are required');
+    if (!title || !category || !body || !image) {
+      toast.error('Title, category, body, and image are required');
       return;
     }
-
+  
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error('You must be logged in to create a post');
       return;
     }
-
+  
     try {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('category', category!);
       formData.append('body', body);
-      if (image) {
-        formData.append('image', image);
-      }
-
+      formData.append('image', image); // Ensure image is always appended
+  
       const response = await fetch(`${API_URL}/posts`, {
         method: 'POST',
         headers: {
@@ -78,9 +76,9 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         },
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         toast.success('Post created successfully!');
         setTitle('');
@@ -101,6 +99,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       toast.error('Failed to create post');
     }
   };
+  
 
   return (
     <div style={{ width: '100%', padding: '15px', border: '1px solid #ddd', borderRadius: '10px' }}>
@@ -110,7 +109,6 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         label="Title"
         placeholder="Enter title (max 100 characters)"
         maxLength={100}
-        required
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
@@ -138,14 +136,13 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         label="Body"
         placeholder="Enter body content (max 300 characters)"
         maxLength={300}
-        required
         style={{ marginTop: '10px' }}
         value={body}
         onChange={(e) => setBody(e.target.value)}
       />
 
       <FileInput
-        label="Upload an image (optional)"
+        label="Upload an image"
         placeholder="Choose file"
         accept="image/*"
         style={{ marginTop: '10px' }}
