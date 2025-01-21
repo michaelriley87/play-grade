@@ -160,7 +160,12 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         />
       )}
 
-      <Button onClick={handleSubmit} style={{ marginTop: '15px' }} fullWidth>
+      <Button 
+        onClick={handleSubmit} 
+        style={{ marginTop: '15px' }} 
+        fullWidth 
+        disabled={!localStorage.getItem('token')} // Disable if no token
+      >
         Create Post
       </Button>
     </div>

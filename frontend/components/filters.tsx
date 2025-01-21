@@ -71,13 +71,16 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
           </Chip.Group>
         </div>
 
-        {/* Additional Filters */}
         <div style={{ paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
           {/* View Options */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <Chip.Group multiple={false} value={users} onChange={setUsers}>
               {viewOptions.map((option) => (
-                <Chip key={option} value={option}>
+                <Chip
+                  key={option}
+                  value={option}
+                  disabled={option === 'Followed Users' && !localStorage.getItem('token')}
+                >
                   {option}
                 </Chip>
               ))}
