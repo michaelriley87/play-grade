@@ -24,6 +24,7 @@ interface PostData {
   category: string;
   created_at: string;
   like_count: number;
+  reply_count: number;
   image_url?: string;
 }
 

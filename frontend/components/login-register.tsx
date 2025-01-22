@@ -1,7 +1,13 @@
-'use client';
-
 import React, { useState } from 'react';
-import { TextInput, PasswordInput, Button, Tabs } from '@mantine/core';
+import {
+  Card,
+  TextInput,
+  PasswordInput,
+  Button,
+  Tabs,
+  Title,
+  Stack,
+} from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 
@@ -54,74 +60,67 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div
-      style={{
-        width: '100%',
-        padding: '15px',
-        border: '1px solid #ddd',
-        borderRadius: '10px',
-      }}
-    >
+    <Card shadow="sm" padding="lg" radius="md" withBorder>
       <ToastContainer position="bottom-center" />
+      <Stack>
+          <Tabs
+          value={activeTab}
+          onChange={(tab: string | null) => {
+            if (tab !== null) setActiveTab(tab);
+          }}
+        >
+          <Tabs.List>
+            <Tabs.Tab value="login">Login</Tabs.Tab>
+            <Tabs.Tab value="register">Register</Tabs.Tab>
+          </Tabs.List>
 
-      <Tabs
-        value={activeTab}
-        onChange={(tab) => {
-          if (tab !== null) setActiveTab(tab);
-        }}
-      >
-        <Tabs.List>
-          <Tabs.Tab value="login">Login</Tabs.Tab>
-          <Tabs.Tab value="register">Register</Tabs.Tab>
-        </Tabs.List>
+          <Tabs.Panel value="login">
+            <Stack mt="md">
+              <TextInput
+                label="Email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <PasswordInput
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button onClick={handleAuth} fullWidth>
+                Login
+              </Button>
+            </Stack>
+          </Tabs.Panel>
 
-        <Tabs.Panel value="login">
-          <TextInput
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ marginTop: '10px' }}
-          />
-          <PasswordInput
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ marginTop: '10px' }}
-          />
-          <Button onClick={handleAuth} style={{ marginTop: '15px' }} fullWidth>
-            Login
-          </Button>
-        </Tabs.Panel>
-
-        <Tabs.Panel value="register">
-          <TextInput
-            label="Name"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ marginTop: '10px' }}
-          />
-          <TextInput
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ marginTop: '10px' }}
-          />
-          <PasswordInput
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ marginTop: '10px' }}
-          />
-          <Button onClick={handleAuth} style={{ marginTop: '15px' }} fullWidth>
-            Register
-          </Button>
-        </Tabs.Panel>
-      </Tabs>
-    </div>
+          <Tabs.Panel value="register">
+            <Stack mt="md">
+              <TextInput
+                label="Name"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <TextInput
+                label="Email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <PasswordInput
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button onClick={handleAuth} fullWidth>
+                Register
+              </Button>
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
+      </Stack>
+    </Card>
   );
 }

@@ -1,7 +1,5 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { Chip, TextInput, Button } from '@mantine/core';
+import { Card, Chip, TextInput, Button, Stack, Title, Group } from '@mantine/core';
 
 interface FiltersProps {
   currentFilters: {
@@ -21,13 +19,11 @@ export default function Filters({
   onClose,
 }: FiltersProps) {
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
-  const viewOptions = ['All Users', 'Followed Users'];
+  const userOptions = ['All Users', 'Followed Users'];
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments'];
 
-  const [selectedFilters, setSelectedFilters] = useState<string[]>(
-    currentFilters.categories
-  );
+  const [selectedFilters, setSelectedFilters] = useState<string[]>(currentFilters.categories);
   const [users, setUsers] = useState(currentFilters.users);
   const [ageRange, setAgeRange] = useState(currentFilters.ageRange);
   const [sortBy, setSortBy] = useState(currentFilters.sortBy);
@@ -64,87 +60,71 @@ export default function Filters({
   };
 
   return (
-    <div
-      style={{
-        width: '100%',
-        padding: '15px',
-        border: '1px solid #ddd',
-        borderRadius: '10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-      }}
-    >
-      {/* Category Filters */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <Chip.Group
-          multiple
-          value={selectedFilters}
-          onChange={handleFilterChange}
-        >
-          {categoryOptions.map((option) => (
-            <Chip key={option} value={option}>
-              {option}
-            </Chip>
-          ))}
-        </Chip.Group>
-      </div>
+    <Card shadow="sm" padding="lg" radius="md" withBorder>
+      <Stack>
+        {/* Category Filters */}
+        <Group justify="center">
+          <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
+            {categoryOptions.map((option) => (
+              <Chip key={option} value={option}>
+                {option}
+              </Chip>
+            ))}
+          </Chip.Group>
+        </Group>
 
-      {/* View Options */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <Chip.Group multiple={false} value={users} onChange={setUsers}>
-          {viewOptions.map((option) => (
-            <Chip
-              key={option}
-              value={option}
-              disabled={
-                option === 'Followed Users' && !localStorage.getItem('token')
-              }
-            >
-              {option}
-            </Chip>
-          ))}
-        </Chip.Group>
-      </div>
+        {/* User Options */}
+        <Group justify="center">
+          <Chip.Group multiple={false} value={users} onChange={setUsers}>
+            {userOptions.map((option) => (
+              <Chip
+                key={option}
+                value={option}
+                disabled={
+                  option === 'Followed Users' && !localStorage.getItem('token')
+                }
+              >
+                {option}
+              </Chip>
+            ))}
+          </Chip.Group>
+        </Group>
 
-      {/* Age Range */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <Chip.Group multiple={false} value={ageRange} onChange={setAgeRange}>
-          {ageOptions.map((option) => (
-            <Chip key={option} value={option}>
-              {option}
-            </Chip>
-          ))}
-        </Chip.Group>
-      </div>
+        {/* Age Range */}
+        <Group justify="center">
+          <Chip.Group multiple={false} value={ageRange} onChange={setAgeRange}>
+            {ageOptions.map((option) => (
+              <Chip key={option} value={option}>
+                {option}
+              </Chip>
+            ))}
+          </Chip.Group>
+        </Group>
 
-      {/* Sort By */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <Chip.Group multiple={false} value={sortBy} onChange={setSortBy}>
-          {sortOptions.map((option) => (
-            <Chip key={option} value={option}>
-              {option}
-            </Chip>
-          ))}
-        </Chip.Group>
-      </div>
+        {/* Sort By */}
+        <Group justify="center">
+          <Chip.Group multiple={false} value={sortBy} onChange={setSortBy}>
+            {sortOptions.map((option) => (
+              <Chip key={option} value={option}>
+                {option}
+              </Chip>
+            ))}
+          </Chip.Group>
+        </Group>
 
-      {/* Search Textbox */}
-      <TextInput
-        label="Search"
-        placeholder="Search by query..."
-        value={searchQuery}
-        onChange={(event) => setSearchQuery(event.currentTarget.value)}
-      />
+        {/* Search Textbox */}
+        <TextInput
+          label="Search"
+          placeholder="Search by query..."
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.currentTarget.value)}
+        />
 
-      {/* Update Results Button */}
-      <Button
-        fullWidth
-        onClick={handleUpdateResults}
-        style={{ marginTop: '10px' }}
-      >
-        Update Results
-      </Button>
-    </div>
+        {/* Update Results Button */}
+        <Button fullWidth onClick={handleUpdateResults}>
+          Update Results
+        </Button>
+      </Stack>
+    </Card>
   );
 }
