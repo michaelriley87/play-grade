@@ -6,8 +6,15 @@ import Feed from '@/components/feed';
 import CreatePost from '@/components/create-post';
 import LoginRegister from '@/components/login-register';
 import Account from '@/components/account';
-import { useState, useEffect } from 'react';
-import { Button, Transition } from '@mantine/core';
+import { useState } from 'react';
+import {
+  Button,
+  Transition,
+  Paper,
+  Container,
+  Stack,
+  Box,
+} from '@mantine/core';
 
 export default function HomePage() {
   const [filters, setFilters] = useState({
@@ -18,75 +25,46 @@ export default function HomePage() {
     searchQuery: '',
   });
 
-  const [activeComponent, setActiveComponent] = useState<string>(''); // Use empty string
-  const [hasToken, setHasToken] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setHasToken(!!token); // Update token presence
-  }, []);
+  const [activeComponent, setActiveComponent] = useState<string>('');
 
   const handleUpdateFilters = (newFilters: typeof filters) => {
     setFilters(newFilters);
   };
 
   const toggleComponent = (component: string) => {
-    setActiveComponent((prev) => (prev === component ? '' : component)); // Empty string instead of null
+    setActiveComponent((prev) => (prev === component ? '' : component));
   };
 
   const isActive = (component: string) => activeComponent === component;
 
   return (
-    <div style={{ height: '100vh', width: '100vw' }}>
-      <div style={{ width: '550px', margin: '0 auto' }}>
-        <Header />
-
+    <Container size="sm" style={{ height: '100vh', paddingTop: '20px' }}>
+      <Header />
+      <Stack align="center">
         {/* Buttons for toggling components */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '10px',
-            marginBottom: '10px',
-          }}
-        >
+        <Button.Group>
           <Button
             onClick={() => toggleComponent('createPost')}
             variant={isActive('createPost') ? 'outline' : 'filled'}
-            style={{
-              borderRadius: '20px',
-              padding: '5px 15px',
-              fontSize: '14px',
-            }}
           >
             Create Post
           </Button>
           <Button
             onClick={() => toggleComponent('filters')}
             variant={isActive('filters') ? 'outline' : 'filled'}
-            style={{
-              borderRadius: '20px',
-              padding: '5px 15px',
-              fontSize: '14px',
-            }}
           >
             Filters
           </Button>
           <Button
             onClick={() => toggleComponent('account')}
             variant={isActive('account') ? 'outline' : 'filled'}
-            style={{
-              borderRadius: '20px',
-              padding: '5px 15px',
-              fontSize: '14px',
-            }}
           >
             Account
           </Button>
-        </div>
+        </Button.Group>
 
         {/* Transition containers */}
-        <div style={{ overflow: 'hidden' }}>
+        <Box style={{ overflow: 'hidden', width: '100%' }}>
           {/* Create Post */}
           <Transition
             mounted={activeComponent === 'createPost'}
@@ -95,9 +73,9 @@ export default function HomePage() {
             timingFunction="ease-in-out"
           >
             {(styles) => (
-              <div style={{ ...styles }}>
+              <Paper style={styles} shadow="md">
                 <CreatePost onClose={() => toggleComponent('')} />
-              </div>
+              </Paper>
             )}
           </Transition>
 
@@ -109,13 +87,13 @@ export default function HomePage() {
             timingFunction="ease-in-out"
           >
             {(styles) => (
-              <div style={{ ...styles }}>
+              <Paper style={styles} shadow="md">
                 <Filters
                   currentFilters={filters}
                   onUpdateFilters={handleUpdateFilters}
                   onClose={() => toggleComponent('')}
                 />
-              </div>
+              </Paper>
             )}
           </Transition>
 
@@ -127,20 +105,20 @@ export default function HomePage() {
             timingFunction="ease-in-out"
           >
             {(styles) => (
-              <div style={{ ...styles }}>
-                {hasToken ? (
+              <Paper style={styles} shadow="md">
+                {localStorage.getItem('token') ? (
                   <Account onClose={() => toggleComponent('')} />
                 ) : (
                   <LoginRegister onClose={() => toggleComponent('')} />
                 )}
-              </div>
+              </Paper>
             )}
           </Transition>
-        </div>
+        </Box>
 
         {/* Feed */}
         <Feed filters={filters} />
-      </div>
-    </div>
+      </Stack>
+    </Container>
   );
 }

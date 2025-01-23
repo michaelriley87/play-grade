@@ -127,9 +127,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         />
 
         <Stack>
-          <Text size="sm">
-            Select Category
-          </Text>
+          <Text size="sm">Select Category</Text>
           <Chip.Group
             multiple={false}
             value={category}
@@ -170,7 +168,11 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         )}
 
         <Tooltip
-          label={!localStorage.getItem('token') ? 'Please log in to create a post' : ''}
+          label={
+            !localStorage.getItem('token')
+              ? 'Please log in to create a post'
+              : ''
+          }
           withArrow
         >
           <Button

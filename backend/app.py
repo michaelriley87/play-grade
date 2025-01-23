@@ -538,6 +538,83 @@ def delete_post(decoded_token, post_id):
         cur.close()
         conn.close()
 
+# Get a single post by post_id
+@app.route('/posts/<int:post_id>', methods=['GET'])
+def get_post(post_id):
+    """
+    Retrieve a single post by its ID.
+    ---
+    tags:
+      - Posts
+    description: This endpoint retrieves a single post by its unique ID.
+    parameters:
+      - name: post_id
+        in: path
+        required: true
+        description: The ID of the post to retrieve.
+        schema:
+          type: integer
+          example: 123
+    responses:
+      200:
+        description: Post retrieved successfully.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post_id:
+                  type: integer
+                poster_id:
+                  type: integer
+                title:
+                  type: string
+                category:
+                  type: string
+                body:
+                  type: string
+                image_url:
+                  type: string
+                like_count:
+                  type: integer
+                reply_count:
+                  type: integer
+                created_at:
+                  type: string
+                  format: date-time
+      404:
+        description: Post not found.
+      500:
+        description: Server error.
+    """
+    try:
+        # SQL query to fetch a single post by post_id
+        query = """
+            SELECT post_id, poster_id, title, category, body, image_url, like_count, reply_count, created_at
+            FROM posts
+            WHERE post_id = %s
+        """
+
+        # Execute the query
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(query, (post_id,))
+        post = cur.fetchone()
+
+        # Check if the post exists
+        if post is None:
+            return jsonify({"error": "Post not found"}), 404
+
+        return jsonify(post), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cur.close()
+        conn.close()
+
+# Get multiple posts using query parameters
 @app.route('/posts', methods=['GET'])
 def get_posts():
     """

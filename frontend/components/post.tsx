@@ -16,9 +16,9 @@ import { IconThumbUp, IconMessageCircle } from '@tabler/icons-react';
 const API_URL = 'http://127.0.0.1:5000';
 
 const categoryIcons: { [key: string]: string } = {
-  G: '🎮', 
-  F: '🎥', 
-  M: '🎵', 
+  G: '🎮',
+  F: '🎥',
+  M: '🎵',
 };
 
 interface PostProps {

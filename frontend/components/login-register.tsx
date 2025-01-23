@@ -5,7 +5,6 @@ import {
   PasswordInput,
   Button,
   Tabs,
-  Title,
   Stack,
 } from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
@@ -17,18 +16,33 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<string>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const router = useRouter();
 
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleAuth = async () => {
-    if (!email || !password || (activeTab === 'register' && !name)) {
+    if (!email || !password || (activeTab === 'register' && !username)) {
       toast.error('All fields are required');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error('Invalid email format');
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
     const endpoint = activeTab === 'login' ? '/users/login' : '/users/register';
     const body =
-      activeTab === 'login' ? { email, password } : { name, email, password };
+      activeTab === 'login'
+        ? { email, password }
+        : { username, email, password };
 
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
@@ -59,11 +73,16 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleAuth();
+  };
+
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <ToastContainer position="bottom-center" />
       <Stack>
-          <Tabs
+        <Tabs
           value={activeTab}
           onChange={(tab: string | null) => {
             if (tab !== null) setActiveTab(tab);
@@ -75,49 +94,55 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
           </Tabs.List>
 
           <Tabs.Panel value="login">
-            <Stack mt="md">
-              <TextInput
-                label="Email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <PasswordInput
-                label="Password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Button onClick={handleAuth} fullWidth>
-                Login
-              </Button>
-            </Stack>
+            <form onSubmit={handleSubmit}>
+              <Stack mt="md">
+                <TextInput
+                  label="Email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email" // Enforces email format in the browser
+                />
+                <PasswordInput
+                  label="Password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button type="submit" fullWidth>
+                  Login
+                </Button>
+              </Stack>
+            </form>
           </Tabs.Panel>
 
           <Tabs.Panel value="register">
-            <Stack mt="md">
-              <TextInput
-                label="Name"
-                placeholder="Enter your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <TextInput
-                label="Email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <PasswordInput
-                label="Password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Button onClick={handleAuth} fullWidth>
-                Register
-              </Button>
-            </Stack>
+            <form onSubmit={handleSubmit}>
+              <Stack mt="md">
+                <TextInput
+                  label="Username"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                <TextInput
+                  label="Email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                />
+                <PasswordInput
+                  label="Password"
+                  placeholder="Enter your password (min 8 characters)"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button type="submit" fullWidth>
+                  Register
+                </Button>
+              </Stack>
+            </form>
           </Tabs.Panel>
         </Tabs>
       </Stack>

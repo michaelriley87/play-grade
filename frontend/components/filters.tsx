@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, Chip, TextInput, Button, Stack, Title, Group } from '@mantine/core';
+import {
+  Card,
+  Chip,
+  TextInput,
+  Button,
+  Stack,
+  Title,
+  Group,
+} from '@mantine/core';
 
 interface FiltersProps {
   currentFilters: {
@@ -23,7 +31,9 @@ export default function Filters({
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments'];
 
-  const [selectedFilters, setSelectedFilters] = useState<string[]>(currentFilters.categories);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>(
+    currentFilters.categories
+  );
   const [users, setUsers] = useState(currentFilters.users);
   const [ageRange, setAgeRange] = useState(currentFilters.ageRange);
   const [sortBy, setSortBy] = useState(currentFilters.sortBy);
@@ -64,7 +74,11 @@ export default function Filters({
       <Stack>
         {/* Category Filters */}
         <Group justify="center">
-          <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
+          <Chip.Group
+            multiple
+            value={selectedFilters}
+            onChange={handleFilterChange}
+          >
             {categoryOptions.map((option) => (
               <Chip key={option} value={option}>
                 {option}

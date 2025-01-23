@@ -10,7 +10,6 @@ export default function Account({ onClose }: { onClose: () => void }) {
   };
 
   return (
-
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Stack>
         <Title>Account</Title>
