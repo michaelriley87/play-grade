@@ -42,6 +42,7 @@ interface PostProps {
     username: string;
     profile_picture_url?: string;
   };
+  currentUser: DecodedJWT | null;
 }
 
 export default function Post({
@@ -55,6 +56,7 @@ export default function Post({
   reply_count,
   image_url,
   user,
+  currentUser,
 }: PostProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -82,7 +84,6 @@ export default function Post({
     })
       .then((response) => {
         if (response.ok) {
-          console.log(`Post ${post_id} deleted successfully.`);
           window.location.href = '/';
         } else {
           response
@@ -97,18 +98,6 @@ export default function Post({
     if (pathname === `/post/${post_id}`) return;
     router.push(`/post/${post_id}`);
   };
-
-  const token = localStorage.getItem('token');
-  let currentUser: DecodedJWT | null = null;
-
-  if (token) {
-    try {
-      const decoded = jwt.decode(token) as DecodedJWT | null;
-      currentUser = decoded as DecodedJWT;
-    } catch (error) {
-      console.error('Failed to decode token:', error);
-    }
-  }
 
   const canDelete =
     currentUser &&

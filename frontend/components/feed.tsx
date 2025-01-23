@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { Stack } from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Post from './post';
+import jwt from 'jsonwebtoken';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -27,6 +29,11 @@ interface PostData {
   like_count: number;
   reply_count: number;
   image_url?: string;
+}
+
+interface DecodedJWT {
+  user_id: string;
+  is_admin: boolean;
 }
 
 export default function Feed({ filters }: FeedProps) {
@@ -66,15 +73,26 @@ export default function Feed({ filters }: FeedProps) {
     fetchPosts();
   }, [filters]);
 
+  const token = localStorage.getItem('token');
+  const currentUser = useMemo(() => {
+    if (!token) return null;
+    try {
+      return jwt.decode(token) as DecodedJWT | null;
+    } catch (error) {
+      console.error('Failed to decode token:', error);
+      return null;
+    }
+  }, [token]);
+
   if (isLoading) return <div>Loading...</div>;
   if (posts.length === 0) return <div>No posts found.</div>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <Stack>
       <ToastContainer position="bottom-center" />
       {posts.map((post) => (
-        <Post key={post.post_id} {...post} />
+        <Post key={post.post_id} {...post} currentUser={currentUser} />
       ))}
-    </div>
+    </Stack>
   );
 }
