@@ -494,13 +494,14 @@ def delete_post(decoded_token, post_id):
       - name: post_id
         in: path
         required: true
-        type: integer
+        schema:
+          type: integer
         description: ID of the post to delete.
     responses:
       200:
         description: Post deleted successfully.
       403:
-        description: Unauthorized action. Only the creator or an admin can delete this post.
+        description: You are not authorized to delete this post.
       404:
         description: Post not found.
       500:
@@ -522,8 +523,8 @@ def delete_post(decoded_token, post_id):
             return jsonify({"error": "Post not found"}), 404
 
         # Check if the user is allowed to delete the post
-        if post['poster_id'] != user_id and not is_admin:
-            return jsonify({"error": "Unauthorized action"}), 403
+        if not (post['poster_id'] == user_id or is_admin):
+            return jsonify({"error": "You are not authorized to delete this post"}), 403
 
         # Delete the post
         cur.execute("DELETE FROM posts WHERE post_id = %s", (post_id,))

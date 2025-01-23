@@ -12,7 +12,8 @@ import {
   Badge,
 } from '@mantine/core';
 import { useRouter, usePathname } from 'next/navigation';
-import { IconThumbUp, IconMessageCircle } from '@tabler/icons-react';
+import { IconThumbUp, IconMessageCircle, IconTrash } from '@tabler/icons-react';
+import jwt from 'jsonwebtoken';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -22,8 +23,14 @@ const categoryIcons: { [key: string]: string } = {
   M: '🎵',
 };
 
+interface DecodedJWT {
+  user_id: string;
+  is_admin: boolean;
+}
+
 interface PostProps {
-  post_id: string;
+  post_id: number;
+  poster_id: number;
   title: string;
   body: string;
   category: string;
@@ -39,6 +46,7 @@ interface PostProps {
 
 export default function Post({
   post_id,
+  poster_id,
   title,
   body,
   category,
@@ -51,15 +59,60 @@ export default function Post({
   const router = useRouter();
   const pathname = usePathname();
 
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this post?'
+    );
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found. Please log in.');
+      return;
+    }
+
+    fetch(`${API_URL}/posts/${post_id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log(`Post ${post_id} deleted successfully.`);
+          window.location.href = '/';
+        } else {
+          response
+            .json()
+            .then((err) => console.error('Failed to delete the post:', err));
+        }
+      })
+      .catch((err) => console.error('Error during delete request:', err));
+  };
+
   const handleClick = () => {
     if (pathname === `/post/${post_id}`) return;
     router.push(`/post/${post_id}`);
   };
 
-  const handleLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // like post logic
-  };
+  const token = localStorage.getItem('token');
+  let currentUser: DecodedJWT | null = null;
+
+  if (token) {
+    try {
+      const decoded = jwt.decode(token) as DecodedJWT | null;
+      currentUser = decoded as DecodedJWT;
+    } catch (error) {
+      console.error('Failed to decode token:', error);
+    }
+  }
+
+  const canDelete =
+    currentUser &&
+    (Number(currentUser.user_id) === poster_id || currentUser.is_admin);
 
   return (
     <Card
@@ -111,14 +164,16 @@ export default function Post({
         />
       )}
 
-      <Group justify="space-between">
+      <Group justify="space-between" align="center">
         <Group>
           <Tooltip label="Like" withArrow>
             <ActionIcon
               variant="light"
               color="blue"
               radius="xl"
-              onClick={handleLikeClick} // Handle like clicks
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             >
               <IconThumbUp size={18} />
             </ActionIcon>
@@ -127,6 +182,18 @@ export default function Post({
             {like_count}
           </Text>
         </Group>
+        {canDelete && (
+          <Tooltip label="Delete Post" withArrow>
+            <ActionIcon
+              variant="light"
+              color="red"
+              radius="xl"
+              onClick={handleDeleteClick}
+            >
+              <IconTrash size={18} />
+            </ActionIcon>
+          </Tooltip>
+        )}
         <Group>
           <Tooltip label="Comments" withArrow>
             <ActionIcon variant="light" color="blue" radius="xl">

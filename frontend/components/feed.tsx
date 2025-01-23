@@ -18,7 +18,8 @@ interface FeedProps {
 }
 
 interface PostData {
-  post_id: string;
+  post_id: number;
+  poster_id: number;
   title: string;
   body: string;
   category: string;
@@ -66,7 +67,7 @@ export default function Feed({ filters }: FeedProps) {
   }, [filters]);
 
   if (isLoading) return <div>Loading...</div>;
-  if (!isLoading && posts.length === 0) return <div>No posts found.</div>;
+  if (posts.length === 0) return <div>No posts found.</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
