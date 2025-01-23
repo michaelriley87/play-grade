@@ -111,6 +111,7 @@ export default function Post({
       withBorder
       style={{
         cursor: pathname === `/post/${post_id}` ? 'default' : 'pointer',
+        width: '100%',
       }}
       onClick={handleClick}
     >

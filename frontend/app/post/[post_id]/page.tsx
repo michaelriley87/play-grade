@@ -3,7 +3,8 @@
 import Header from '@/components/header';
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Container, Stack, Loader } from '@mantine/core';
+import { Button, Container, Stack, Loader } from '@mantine/core';
+import { IconArrowLeft } from '@tabler/icons-react';
 import Post from '@/components/post';
 import jwt from 'jsonwebtoken';
 
@@ -50,9 +51,9 @@ export default function PostPage() {
         setLoading(false);
       }
     };
-  
+
     fetchPost();
-  }, [post_id, router]);  
+  }, [post_id, router]);
 
   const token = localStorage.getItem('token');
   const currentUser = useMemo(() => {
@@ -67,10 +68,7 @@ export default function PostPage() {
 
   if (loading) {
     return (
-      <Container
-        size="sm"
-        className="full-height"
-      >
+      <Container size="sm" className="full-height">
         <Loader size="lg" />
       </Container>
     );
@@ -79,6 +77,15 @@ export default function PostPage() {
   return (
     <Container size="sm" style={{ paddingTop: '20px' }}>
       <Header />
+      <Stack align="center" style={{ marginBottom: '1rem' }}>
+        <Button
+          color="blue"
+          leftSection={<IconArrowLeft size={16} />}
+          onClick={() => router.push('/')}
+        >
+          Home
+        </Button>
+      </Stack>
       <Stack align="center">
         {post && <Post {...post} currentUser={currentUser} />}
       </Stack>

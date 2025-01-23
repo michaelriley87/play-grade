@@ -1,7 +1,18 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Avatar, Button, Card, Stack, TextInput, PasswordInput, Title, Divider, Flex, Anchor } from '@mantine/core';
+import {
+  Avatar,
+  Button,
+  Card,
+  Stack,
+  TextInput,
+  PasswordInput,
+  Title,
+  Divider,
+  Flex,
+  Anchor,
+} from '@mantine/core';
 import { IconEdit, IconTrash, IconLogout } from '@tabler/icons-react';
 import jwt from 'jsonwebtoken';
 
@@ -70,7 +81,9 @@ export default function Account({ onClose }: { onClose: () => void }) {
     window.location.reload();
   };
 
-  const toggleEditField = (field: 'displayPicture' | 'username' | 'password') => {
+  const toggleEditField = (
+    field: 'displayPicture' | 'username' | 'password'
+  ) => {
     if (field === 'displayPicture') setEditDisplayPicture(!editDisplayPicture);
     if (field === 'username') setEditUsername(!editUsername);
     if (field === 'password') setEditPassword(!editPassword);
@@ -81,17 +94,28 @@ export default function Account({ onClose }: { onClose: () => void }) {
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Stack gap="md" style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}>
+      <Stack
+        gap="md"
+        style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}
+      >
         {/* Profile Info Section */}
         <Flex direction="column" align="center" style={{ gap: '8px' }}>
-          <Anchor href={`/user/${currentUser?.user_id}`} style={{ textDecoration: 'none' }}>
+          <Anchor
+            href={`/user/${currentUser?.user_id}`}
+            style={{ textDecoration: 'none' }}
+          >
             <Avatar
-              src={userData.profile_picture ? `${API_URL}${userData.profile_picture}` : undefined}
+              src={
+                userData.profile_picture
+                  ? `${API_URL}${userData.profile_picture}`
+                  : undefined
+              }
               alt="Profile Picture"
               radius="xl"
               size={80}
             >
-              {!userData.profile_picture && userData.username.charAt(0).toUpperCase()}
+              {!userData.profile_picture &&
+                userData.username.charAt(0).toUpperCase()}
             </Avatar>
           </Anchor>
           <Anchor
@@ -115,7 +139,10 @@ export default function Account({ onClose }: { onClose: () => void }) {
         {/* Change Display Picture */}
         <Flex justify="space-between" align="center" gap="sm">
           <span>Change Display Picture</span>
-          <Button size="compact-md" onClick={() => toggleEditField('displayPicture')}>
+          <Button
+            size="compact-md"
+            onClick={() => toggleEditField('displayPicture')}
+          >
             <IconEdit size={14} />
           </Button>
         </Flex>
@@ -169,11 +196,11 @@ export default function Account({ onClose }: { onClose: () => void }) {
         <Divider my="sm" />
 
         {/* Account Actions */}
-        <Button color='red' variant="outline" style={{ width: '100%' }}>
+        <Button color="red" variant="outline" style={{ width: '100%' }}>
           <IconTrash size={14} style={{ marginRight: '8px' }} />
           Delete Account
         </Button>
-        <Button color='red' style={{ width: '100%' }} onClick={handleLogout}>
+        <Button color="red" style={{ width: '100%' }} onClick={handleLogout}>
           <IconLogout size={14} style={{ marginRight: '8px' }} />
           Logout
         </Button>

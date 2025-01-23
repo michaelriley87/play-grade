@@ -6,6 +6,7 @@ import Feed from '@/components/feed';
 import CreatePost from '@/components/create-post';
 import LoginRegister from '@/components/login-register';
 import Account from '@/components/account';
+import User from '@/components/user';
 import { useState } from 'react';
 import {
   Button,
