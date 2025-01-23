@@ -9,6 +9,20 @@ import jwt from 'jsonwebtoken';
 
 const API_URL = 'http://127.0.0.1:5000';
 
+interface PostData {
+  post_id: number;
+  poster_id: number;
+  title: string;
+  body: string;
+  category: string;
+  image_url?: string;
+  like_count: number;
+  reply_count: number;
+  created_at: string;
+  username: string;
+  profile_picture?: string;
+}
+
 interface DecodedJWT {
   user_id: string;
   is_admin: boolean;
@@ -17,7 +31,7 @@ interface DecodedJWT {
 export default function PostPage() {
   const { post_id } = useParams<{ post_id: string }>();
   const router = useRouter();
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +41,7 @@ export default function PostPage() {
         if (!res.ok) {
           throw new Error('Post not found');
         }
-        const data = await res.json();
+        const data: PostData = await res.json();
         setPost(data);
       } catch (error) {
         console.error('Error fetching post:', error);
@@ -36,9 +50,9 @@ export default function PostPage() {
         setLoading(false);
       }
     };
-
+  
     fetchPost();
-  }, [post_id, router]);
+  }, [post_id, router]);  
 
   const token = localStorage.getItem('token');
   const currentUser = useMemo(() => {

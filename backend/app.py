@@ -294,7 +294,6 @@ def login():
         token = jwt.encode(
             {
                 "user_id": user['user_id'],
-                "username": user['username'],
                 "is_admin": user['is_admin'],
                 "exp": datetime.now(timezone.utc) + timedelta(days=30)
             },
@@ -303,6 +302,78 @@ def login():
         )
 
         return jsonify({"message": "Login successful", "token": token}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    """
+    Get user details
+    ---
+    tags:
+      - Users
+    description: 
+        This endpoint retrieves user details (username and optional profile_picture) based on user_id.
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        description: The ID of the user to retrieve
+        type: integer
+        example: 1
+    responses:
+      200:
+        description: User details retrieved successfully
+        schema:
+          type: object
+          properties:
+            user_id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: testuser
+            profile_picture:
+              type: string
+              example: https://example.com/path/to/profile_picture.jpg
+      404:
+        description: User not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: User not found
+      500:
+        description: Server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Internal server error
+    """
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Query user details
+        cur.execute("SELECT user_id, username, profile_picture FROM users WHERE user_id = %s", (user_id,))
+        user = cur.fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        return jsonify({
+            "user_id": user['user_id'],
+            "username": user['username'],
+            "profile_picture": user.get('profile_picture', None)
+        }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -383,7 +454,7 @@ def create_post(decoded_token):
     ---
     tags:
       - Posts
-    description: This endpoint allows a logged-in user to create a new post. The user must provide a valid Bearer token in the Authorization header. Posts must include a category, title, and body with a maximum of 300 characters.
+    description: This endpoint allows a logged-in user to create a new post. The user must provide a valid Bearer token in the Authorization header. Posts must include a category, title, body with a maximum of 300 characters, and an image file.
     parameters:
       - name: body
         in: body
@@ -395,6 +466,7 @@ def create_post(decoded_token):
             - title
             - body
             - category
+            - image_url
           properties:
             title:
               type: string
@@ -439,20 +511,20 @@ def create_post(decoded_token):
         return jsonify({"error": "Body must not exceed 300 characters"}), 400
     if category not in ['G', 'F', 'M']:
         return jsonify({"error": "Invalid category. Must be 'G', 'F', or 'M'"}), 400
+    if not file:
+        return jsonify({"error": "Image file is required"}), 400
 
-    # Handle file upload
-    image_url = None
-    if file:
-        if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}:
-            # Generate a unique filename
-            file_extension = file.filename.rsplit('.', 1)[1].lower()
-            unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-            # Save the file
-            file.save(filepath)
-            image_url = f"/uploads/{unique_filename}"
-        else:
-            return jsonify({"error": "Invalid file type. Allowed: png, jpg, jpeg, gif"}), 400
+    # Validate file type
+    if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}:
+        # Generate a unique filename
+        file_extension = file.filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        # Save the file
+        file.save(filepath)
+        image_url = f"/uploads/{unique_filename}"
+    else:
+        return jsonify({"error": "Invalid file type. Allowed: png, jpg, jpeg, gif"}), 400
 
     try:
         # Insert the post into the database
@@ -583,17 +655,33 @@ def get_post(post_id):
                 created_at:
                   type: string
                   format: date-time
+                username:
+                  type: string
+                profile_picture:
+                  type: string
       404:
         description: Post not found.
       500:
         description: Server error.
     """
     try:
-        # SQL query to fetch a single post by post_id
+        # SQL query to fetch a single post with user details
         query = """
-            SELECT post_id, poster_id, title, category, body, image_url, like_count, reply_count, created_at
+            SELECT 
+                posts.post_id, 
+                posts.poster_id, 
+                posts.title, 
+                posts.category, 
+                posts.body, 
+                posts.image_url, 
+                posts.like_count, 
+                posts.reply_count, 
+                posts.created_at,
+                users.username, 
+                users.profile_picture
             FROM posts
-            WHERE post_id = %s
+            JOIN users ON posts.poster_id = users.user_id
+            WHERE posts.post_id = %s
         """
 
         # Execute the query
@@ -605,7 +693,7 @@ def get_post(post_id):
         # Check if the post exists
         if post is None:
             return jsonify({"error": "Post not found"}), 404
-
+        print(post)
         return jsonify(post), 200
 
     except Exception as e:
@@ -675,20 +763,32 @@ def get_posts():
     """
     try:
         # Parse query parameters
-        category_mapping = { "🎮 Games": "G", "🎥 Film/TV": "F", "🎵 Music": "M" }
-        raw_categories = request.args.get('categories', '')  # Fetch as a single string
-        categories = [cat.strip() for cat in raw_categories.split(',') if cat.strip()]  # Split and clean categories
-        categories = [category_mapping.get(cat) for cat in categories if category_mapping.get(cat)] # Map categories to backend-friendly codes
+        category_mapping = {"🎮 Games": "G", "🎥 Film/TV": "F", "🎵 Music": "M"}
+        raw_categories = request.args.get('categories', '')
+        categories = [cat.strip() for cat in raw_categories.split(',') if cat.strip()]
+        categories = [category_mapping.get(cat) for cat in categories if category_mapping.get(cat)]
 
         users = request.args.get('users', 'All Users')
         age_range = request.args.get('ageRange', 'All')
         sort_by = request.args.get('sortBy', 'Newest')
         search_query = request.args.get('searchQuery', '')
 
-        # Start building the SQL query
+        # Start building the SQL query with a JOIN to include username and profile_picture
         query = """
-            SELECT post_id, poster_id, title, category, body, image_url, like_count, reply_count, created_at
+            SELECT 
+                posts.post_id, 
+                posts.poster_id, 
+                posts.title, 
+                posts.category, 
+                posts.body, 
+                posts.image_url, 
+                posts.like_count, 
+                posts.reply_count, 
+                posts.created_at,
+                users.username, 
+                users.profile_picture
             FROM posts
+            JOIN users ON posts.poster_id = users.user_id
             WHERE 1=1
         """
         params = []
@@ -696,13 +796,13 @@ def get_posts():
         # Filter by categories
         if categories:
             placeholders = ', '.join(['%s'] * len(categories))
-            query += f" AND category IN ({placeholders})"
+            query += f" AND posts.category IN ({placeholders})"
             params.extend(categories)
 
         # Filter by user type
         if users == 'Followed Users':
             followed_user_ids = [1, 2, 3]  # Example hardcoded values
-            query += " AND poster_id = ANY(%s)"
+            query += " AND posts.poster_id = ANY(%s)"
             params.append(followed_user_ids)
 
         # Filter by age range
@@ -714,22 +814,22 @@ def get_posts():
                 'Year': '365 days'
             }
             if age_range in time_intervals:
-                query += " AND created_at >= NOW() - INTERVAL %s"
+                query += " AND posts.created_at >= NOW() - INTERVAL %s"
                 params.append(time_intervals[age_range])
 
         # Filter by search query
         if search_query:
-            query += " AND (LOWER(title) LIKE %s OR LOWER(body) LIKE %s)"
+            query += " AND (LOWER(posts.title) LIKE %s OR LOWER(posts.body) LIKE %s)"
             search_term = f"%{search_query.lower()}%"
             params.extend([search_term, search_term])
 
         # Sorting
         sort_columns = {
-            'Newest': 'created_at DESC',
-            'Most Liked': 'like_count DESC',
-            'Most Comments': 'reply_count DESC'
+            'Newest': 'posts.created_at DESC',
+            'Most Liked': 'posts.like_count DESC',
+            'Most Comments': 'posts.reply_count DESC'
         }
-        query += f" ORDER BY {sort_columns.get(sort_by, 'created_at DESC')}"
+        query += f" ORDER BY {sort_columns.get(sort_by, 'posts.created_at DESC')}"
 
         # Execute the query
         conn = get_db_connection()
@@ -745,7 +845,6 @@ def get_posts():
     finally:
         cur.close()
         conn.close()
-
 
 # Like post or comment
 @app.route('/likes', methods=['POST'])

@@ -101,11 +101,11 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  type="email" // Enforces email format in the browser
+                  type="email"
                 />
                 <PasswordInput
                   label="Password"
-                  placeholder="Enter your password"
+                  placeholder="Enter your password (min 8 characters)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />

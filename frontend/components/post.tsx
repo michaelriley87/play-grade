@@ -7,13 +7,14 @@ import {
   Group,
   Image,
   Stack,
+  Title,
   ActionIcon,
   Tooltip,
   Badge,
+  Anchor,
 } from '@mantine/core';
 import { useRouter, usePathname } from 'next/navigation';
 import { IconThumbUp, IconMessageCircle, IconTrash } from '@tabler/icons-react';
-import jwt from 'jsonwebtoken';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -38,10 +39,8 @@ interface PostProps {
   like_count: number;
   reply_count: number;
   image_url?: string;
-  user?: {
-    username: string;
-    profile_picture_url?: string;
-  };
+  username: string;
+  profile_picture?: string;
   currentUser: DecodedJWT | null;
 }
 
@@ -55,7 +54,8 @@ export default function Post({
   like_count,
   reply_count,
   image_url,
-  user,
+  username,
+  profile_picture,
   currentUser,
 }: PostProps) {
   const router = useRouter();
@@ -116,17 +116,26 @@ export default function Post({
     >
       <Group justify="space-between" style={{ marginBottom: '1rem' }}>
         <Group align="center">
-          <Avatar
-            src={
-              user?.profile_picture_url
-                ? API_URL + user.profile_picture_url
-                : null
-            }
-            alt={user?.username || 'User'}
-            radius="xl"
-          />
+          <Anchor
+            href={`/user/${poster_id}`}
+            style={{ textDecoration: 'none' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Avatar
+              src={profile_picture ? API_URL + profile_picture : null}
+              alt={username || 'User'}
+              radius="xl"
+              size="lg"
+            />
+          </Anchor>
           <Stack style={{ marginLeft: '1rem' }}>
-            <Text fw={500}>{user?.username || 'Unknown User'}</Text>
+            <Anchor
+              href={`/user/${poster_id}`}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Title order={3}>{username || 'Unknown User'}</Title>
+            </Anchor>
             <Text size="xs" c="dimmed">
               {new Date(created_at).toLocaleString()}
             </Text>

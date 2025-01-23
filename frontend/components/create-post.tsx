@@ -96,11 +96,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
 
       if (response.ok) {
         toast.success('Post created successfully!');
-
-        // Redirect to the newly created post page
         router.push(`/post/${data.post_id}`);
-
-        // Clear form and close the modal
         setTitle('');
         setCategory(null);
         setBody('');

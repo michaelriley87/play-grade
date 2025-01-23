@@ -29,6 +29,8 @@ interface PostData {
   like_count: number;
   reply_count: number;
   image_url?: string;
+  username: string;
+  profile_picture: string;
 }
 
 interface DecodedJWT {
