@@ -11,6 +11,7 @@ import {
   Tooltip,
   Badge,
 } from '@mantine/core';
+import { useRouter, usePathname } from 'next/navigation';
 import { IconThumbUp, IconMessageCircle } from '@tabler/icons-react';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -47,8 +48,30 @@ export default function Post({
   image_url,
   user,
 }: PostProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleClick = () => {
+    if (pathname === `/post/${post_id}`) return;
+    router.push(`/post/${post_id}`);
+  };
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // like post logic
+  };
+
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
+    <Card
+      shadow="sm"
+      padding="lg"
+      radius="md"
+      withBorder
+      style={{
+        cursor: pathname === `/post/${post_id}` ? 'default' : 'pointer',
+      }}
+      onClick={handleClick}
+    >
       <Group justify="space-between" style={{ marginBottom: '1rem' }}>
         <Group align="center">
           <Avatar
@@ -91,7 +114,12 @@ export default function Post({
       <Group justify="space-between">
         <Group>
           <Tooltip label="Like" withArrow>
-            <ActionIcon variant="light" color="blue" radius="xl">
+            <ActionIcon
+              variant="light"
+              color="blue"
+              radius="xl"
+              onClick={handleLikeClick} // Handle like clicks
+            >
               <IconThumbUp size={18} />
             </ActionIcon>
           </Tooltip>

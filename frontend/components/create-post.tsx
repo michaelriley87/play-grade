@@ -10,12 +10,12 @@ import {
   Chip,
   Stack,
   Group,
-  Title,
   Text,
   Tooltip,
 } from '@mantine/core';
 import { useState } from 'react';
 import imageCompression from 'browser-image-compression';
+import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -31,6 +31,8 @@ export default function CreatePost({ onClose }: CreatePostProps) {
   const [body, setBody] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
 
@@ -94,6 +96,11 @@ export default function CreatePost({ onClose }: CreatePostProps) {
 
       if (response.ok) {
         toast.success('Post created successfully!');
+
+        // Redirect to the newly created post page
+        router.push(`/post/${data.post_id}`);
+
+        // Clear form and close the modal
         setTitle('');
         setCategory(null);
         setBody('');

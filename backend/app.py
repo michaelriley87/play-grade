@@ -429,7 +429,6 @@ def create_post(decoded_token):
     body = request.form.get('body')
     category = request.form.get('category')
     file = request.files.get('image') 
-    print(f"Category received: {category}")
     category_mapping = {'🎮 Games': 'G', '🎥 Film/TV': 'F', '🎵 Music': 'M'}
     category = category_mapping.get(category)
 
@@ -470,6 +469,7 @@ def create_post(decoded_token):
         post_id = cur.fetchone()['post_id']
         conn.commit()
 
+        # Return success message and post_id
         return jsonify({"message": "Post created successfully", "post_id": post_id}), 201
 
     except Exception as e:
