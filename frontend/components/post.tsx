@@ -105,13 +105,10 @@ export default function Post({
 
   return (
     <Card
-      shadow="sm"
-      padding="lg"
-      radius="md"
       withBorder
       style={{
         cursor: pathname === `/post/${post_id}` ? 'default' : 'pointer',
-        width: '100%',
+        width: '100%'
       }}
       onClick={handleClick}
     >

@@ -117,7 +117,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
+    <Card withBorder style={{ width: '100%' }}>
       <ToastContainer position="bottom-center" />
 
       <Stack>

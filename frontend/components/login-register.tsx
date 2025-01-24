@@ -79,7 +79,7 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
+    <Card withBorder style={{ width: '100%' }}>
       <ToastContainer position="bottom-center" />
       <Stack>
         <Tabs

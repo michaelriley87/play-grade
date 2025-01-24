@@ -70,7 +70,7 @@ export default function Filters({
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
+    <Card withBorder style={{ width: '100%' }}>
       <Stack>
         {/* Category Filters */}
         <Group justify="center">

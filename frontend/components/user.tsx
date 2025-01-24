@@ -54,13 +54,7 @@ export default function User({ user_id }: UserProps) {
   }
 
   return (
-    <Card
-      shadow="sm"
-      padding="lg"
-      radius="md"
-      withBorder
-      style={{ width: '100%', margin: 'auto' }}
-    >
+    <Card withBorder style={{ width: '100%' }}>
       <Flex direction="column" align="center" style={{ gap: '8px' }}>
         <Avatar
           src={

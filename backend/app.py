@@ -618,15 +618,15 @@ def delete_post(decoded_token, post_id):
         cur.close()
         conn.close()
 
-# Get a single post by post_id
+# Get a single post by post_id with replies
 @app.route('/posts/<int:post_id>', methods=['GET'])
-def get_post(post_id):
+def get_post_with_replies(post_id):
     """
-    Retrieve a single post by its ID.
+    Retrieve a single post by its ID along with its replies.
     ---
     tags:
       - Posts
-    description: This endpoint retrieves a single post by its unique ID.
+    description: This endpoint retrieves a single post by its unique ID, including its replies.
     parameters:
       - name: post_id
         in: path
@@ -637,35 +637,62 @@ def get_post(post_id):
           example: 123
     responses:
       200:
-        description: Post retrieved successfully.
+        description: Post and replies retrieved successfully.
         content:
           application/json:
             schema:
               type: object
               properties:
-                post_id:
-                  type: integer
-                poster_id:
-                  type: integer
-                title:
-                  type: string
-                category:
-                  type: string
-                body:
-                  type: string
-                image_url:
-                  type: string
-                like_count:
-                  type: integer
-                reply_count:
-                  type: integer
-                created_at:
-                  type: string
-                  format: date-time
-                username:
-                  type: string
-                profile_picture:
-                  type: string
+                post:
+                  type: object
+                  properties:
+                    post_id:
+                      type: integer
+                    poster_id:
+                      type: integer
+                    title:
+                      type: string
+                    category:
+                      type: string
+                    body:
+                      type: string
+                    image_url:
+                      type: string
+                    like_count:
+                      type: integer
+                    reply_count:
+                      type: integer
+                    created_at:
+                      type: string
+                      format: date-time
+                    username:
+                      type: string
+                    profile_picture:
+                      type: string
+                replies:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      reply_id:
+                        type: integer
+                      post_id:
+                        type: integer
+                      replier_id:
+                        type: integer
+                      body:
+                        type: string
+                      image_url:
+                        type: string
+                      like_count:
+                        type: integer
+                      created_at:
+                        type: string
+                        format: date-time
+                      username:
+                        type: string
+                      profile_picture:
+                        type: string
       404:
         description: Post not found.
       500:
@@ -673,7 +700,7 @@ def get_post(post_id):
     """
     try:
         # SQL query to fetch a single post with user details
-        query = """
+        post_query = """
             SELECT 
                 posts.post_id, 
                 posts.poster_id, 
@@ -691,16 +718,47 @@ def get_post(post_id):
             WHERE posts.post_id = %s
         """
 
-        # Execute the query
+        # SQL query to fetch replies associated with the post
+        replies_query = """
+            SELECT 
+                replies.reply_id, 
+                replies.post_id, 
+                replies.replier_id, 
+                replies.body, 
+                replies.image_url, 
+                replies.like_count, 
+                replies.created_at, 
+                users.username, 
+                users.profile_picture
+            FROM replies
+            JOIN users ON replies.replier_id = users.user_id
+            WHERE replies.post_id = %s
+            ORDER BY replies.created_at ASC
+        """
+
+        # Execute the queries
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(query, (post_id,))
+
+        # Fetch the post
+        cur.execute(post_query, (post_id,))
         post = cur.fetchone()
 
         # Check if the post exists
         if post is None:
             return jsonify({"error": "Post not found"}), 404
-        return jsonify(post), 200
+
+        # Fetch the replies
+        cur.execute(replies_query, (post_id,))
+        replies = cur.fetchall()
+
+        # Combine the post and replies into a single response
+        response = {
+            "post": post,
+            "replies": replies
+        }
+
+        return jsonify(response), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

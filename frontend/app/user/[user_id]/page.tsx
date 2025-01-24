@@ -53,7 +53,6 @@ export default function ProfilePage() {
       <Header />
       <Stack align="center" style={{ marginBottom: '1rem' }}>
         <Button
-          color="blue"
           leftSection={<IconArrowLeft size={16} />}
           onClick={() => router.push('/')}
         >

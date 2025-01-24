@@ -93,7 +93,7 @@ export default function Account({ onClose }: { onClose: () => void }) {
   if (!userData) return <div>Failed to load user data.</div>;
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
+    <Card withBorder style={{ width: '100%' }}>
       <Stack
         gap="md"
         style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}
