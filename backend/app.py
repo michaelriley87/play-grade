@@ -561,7 +561,7 @@ def delete_post(decoded_token, post_id):
     tags:
       - Posts
     description:
-        Allows a poster or Admin to delete a post.
+        Allows a poster or Admin to delete a post along with its associated image file.
     parameters:
       - name: post_id
         in: path
@@ -569,6 +569,7 @@ def delete_post(decoded_token, post_id):
         schema:
           type: integer
         description: ID of the post to delete.
+        example: 42
     responses:
       200:
         description: Post deleted successfully.
@@ -577,7 +578,7 @@ def delete_post(decoded_token, post_id):
       404:
         description: Post not found.
       500:
-        description: Server error.
+        description: An unexpected server error occurred.
     security:
       - Bearer: []
     """
@@ -585,27 +586,33 @@ def delete_post(decoded_token, post_id):
     is_admin = decoded_token['is_admin']
 
     try:
-        # Ensure the post exists
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT poster_id FROM posts WHERE post_id = %s", (post_id,))
+        cur.execute("SELECT poster_id, image_url FROM posts WHERE post_id = %s", (post_id,))
         post = cur.fetchone()
 
         if not post:
             return jsonify({"error": "Post not found"}), 404
 
-        # Check if the user is allowed to delete the post
         if not (post['poster_id'] == user_id or is_admin):
             return jsonify({"error": "You are not authorized to delete this post"}), 403
 
-        # Delete the post
+        # Delete the image file
+        image_url = post.get('image_url')
+        if image_url:
+            # Convert relative URL to absolute file path
+            absolute_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(image_url))
+            if os.path.exists(absolute_path):
+                os.remove(absolute_path)
+
+        # Delete the post from the database
         cur.execute("DELETE FROM posts WHERE post_id = %s", (post_id,))
         conn.commit()
 
-        return jsonify({"message": "Post deleted successfully"}), 200
+        return jsonify({"message": "Post and associated image deleted successfully"}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
     finally:
         cur.close()
@@ -693,7 +700,6 @@ def get_post(post_id):
         # Check if the post exists
         if post is None:
             return jsonify({"error": "Post not found"}), 404
-        print(post)
         return jsonify(post), 200
 
     except Exception as e:
