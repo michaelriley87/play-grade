@@ -1,26 +1,7 @@
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  Chip,
-  TextInput,
-  Button,
-  Stack,
-  Title,
-  Group,
-} from '@mantine/core';
+import { Card, Chip, TextInput, Button, Stack, Group } from '@mantine/core';
 import { useAuth } from '@/context/AuthContext';
-
-interface FiltersProps {
-  currentFilters: {
-    categories: string[];
-    users: string;
-    ageRange: string;
-    sortBy: string;
-    searchQuery: string;
-  };
-  onUpdateFilters: (filters: FiltersProps['currentFilters']) => void;
-  onClose: () => void;
-}
+import { FiltersProps } from '@/types/interfaces';
 
 export default function Filters({
   currentFilters,

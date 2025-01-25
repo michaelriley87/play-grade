@@ -1,18 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Avatar, Card, Flex, Title, Divider } from '@mantine/core';
+import { Avatar, Card, Flex, Title } from '@mantine/core';
+import { UserProps, UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
-
-interface UserProps {
-  user_id: string | number;
-}
-
-interface UserData {
-  username: string;
-  profile_picture?: string;
-}
 
 export default function User({ user_id }: UserProps) {
   const [userData, setUserData] = useState<UserData | null>(null);

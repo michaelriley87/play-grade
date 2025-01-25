@@ -16,6 +16,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { IconThumbUp, IconMessageCircle, IconTrash } from '@tabler/icons-react';
 import { useAuth } from '@/context/AuthContext';
+import { PostProps } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -24,20 +25,6 @@ const categoryIcons: { [key: string]: string } = {
   F: '🎥',
   M: '🎵',
 };
-
-interface PostProps {
-  post_id: number;
-  poster_id: number;
-  title: string;
-  body: string;
-  category: string;
-  created_at: string;
-  like_count: number;
-  reply_count: number;
-  image_url?: string;
-  username: string;
-  profile_picture?: string;
-}
 
 export default function Post({
   post_id,

@@ -6,32 +6,9 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Post from './post';
 import { useAuth } from '@/context/AuthContext';
+import { FeedProps, PostData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
-
-interface FeedProps {
-  filters: {
-    categories: string[];
-    users: string;
-    ageRange: string;
-    sortBy: string;
-    searchQuery: string;
-  };
-}
-
-interface PostData {
-  post_id: number;
-  poster_id: number;
-  title: string;
-  body: string;
-  category: string;
-  created_at: string;
-  like_count: number;
-  reply_count: number;
-  image_url?: string;
-  username: string;
-  profile_picture: string;
-}
 
 export default function Feed({ filters }: FeedProps) {
   const [posts, setPosts] = useState<PostData[]>([]);

@@ -12,18 +12,7 @@ import {
 } from '@mantine/core';
 import { IconThumbUp } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-
-interface ReplyProps {
-  reply_id: number;
-  post_id: number;
-  replier_id: number;
-  body: string;
-  image_url?: string;
-  like_count: number;
-  created_at: string;
-  username: string;
-  profile_picture?: string;
-}
+import { ReplyProps } from '@/types/interfaces';
 
 export default function Reply({
   replier_id,

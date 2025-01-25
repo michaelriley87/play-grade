@@ -6,13 +6,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button, Container, Stack, Loader } from '@mantine/core';
 import { IconArrowLeft } from '@tabler/icons-react';
 import User from '@/components/user';
+import { UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
-
-interface UserData {
-  username: string;
-  profile_picture?: string;
-}
 
 export default function ProfilePage() {
   const { user_id } = useParams<{ user_id: string }>();

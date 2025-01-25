@@ -16,13 +16,9 @@ import {
 import { IconEdit, IconTrash, IconLogout } from '@tabler/icons-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
-
-interface UserData {
-  username: string;
-  profile_picture?: string;
-}
 
 export default function Account({ onClose }: { onClose: () => void }) {
   const [userData, setUserData] = useState<UserData | null>(null);

@@ -19,12 +19,9 @@ import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import { useAuth } from '@/context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
+import { CreatePostProps } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
-
-interface CreatePostProps {
-  onClose: () => void;
-}
 
 export default function CreatePost({ onClose }: CreatePostProps) {
   const [title, setTitle] = useState('');
@@ -172,15 +169,11 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         )}
 
         <Tooltip
-          label={!token ? 'Please log in to create a post' : undefined} // Show tooltip only when logged out
+          label={!token ? 'Please log in to create a post' : undefined}
           withArrow
-          disabled={!!token} // Disable the tooltip entirely when logged in
+          disabled={!!token}
         >
-          <Button
-            onClick={handleSubmit}
-            fullWidth
-            disabled={!token} // Disable button if no token
-          >
+          <Button onClick={handleSubmit} fullWidth disabled={!token}>
             Create Post
           </Button>
         </Tooltip>
