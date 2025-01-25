@@ -6,11 +6,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Post from './post';
 import { useAuth } from '@/context/AuthContext';
-import { FeedProps, PostData } from '@/types/interfaces';
+import { PostData, FeedProps } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function Feed({ filters }: FeedProps) {
+export default function Feed({ filters = {} }: FeedProps) {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useAuth();
@@ -21,11 +21,12 @@ export default function Feed({ filters }: FeedProps) {
 
       try {
         const queryParams = new URLSearchParams({
-          categories: filters.categories.join(','),
-          users: filters.users,
-          ageRange: filters.ageRange,
-          sortBy: filters.sortBy,
-          searchQuery: filters.searchQuery,
+          categories: filters.categories?.join(',') || '',
+          users: filters.users || '',
+          ageRange: filters.ageRange || '',
+          sortBy: filters.sortBy || '',
+          searchQuery: filters.searchQuery || '',
+          posterId: filters.posterId || '',
         });
 
         const headers: HeadersInit = token

@@ -34,12 +34,13 @@ export interface CreatePostProps {
 }
 
 export interface FeedProps {
-  filters: {
-    categories: string[];
-    users: string;
-    ageRange: string;
-    sortBy: string;
-    searchQuery: string;
+  filters?: {
+    categories?: string[];
+    users?: string;
+    ageRange?: string;
+    sortBy?: string;
+    searchQuery?: string;
+    posterId?: string;
   };
 }
 

@@ -775,7 +775,7 @@ def get_posts():
     ---
     tags:
       - Posts
-    description: This endpoint retrieves posts based on filters such as categories, users, age range, and search queries. Posts can also be sorted by newest, most liked, or most commented.
+    description: This endpoint retrieves posts based on filters such as categories, users, age range, poster ID, and search queries. Posts can also be sorted by newest, most liked, or most commented.
     parameters:
       - name: categories
         in: query
@@ -817,6 +817,13 @@ def get_posts():
         schema:
           type: string
           example: "example search term"
+      - name: posterId
+        in: query
+        required: false
+        description: Filter posts by poster ID.
+        schema:
+          type: integer
+          example: 123
     responses:
       200:
         description: Posts retrieved successfully.
@@ -836,6 +843,7 @@ def get_posts():
         age_range = request.args.get('ageRange', 'All')
         sort_by = request.args.get('sortBy', 'Newest')
         search_query = request.args.get('searchQuery', '')
+        poster_id = request.args.get('posterId', None)
 
         # Start building the SQL query with a JOIN to include username and profile_picture
         query = """
@@ -886,6 +894,11 @@ def get_posts():
             query += " AND (LOWER(posts.title) LIKE %s OR LOWER(posts.body) LIKE %s)"
             search_term = f"%{search_query.lower()}%"
             params.extend([search_term, search_term])
+
+        # Filter by poster ID
+        if poster_id:
+            query += " AND posts.poster_id = %s"
+            params.append(int(poster_id))
 
         # Sorting
         sort_columns = {
