@@ -17,6 +17,7 @@ import { useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
+import { useAuth } from '@/context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -32,6 +33,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const { token } = useAuth();
   const router = useRouter();
 
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
@@ -71,7 +73,6 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       return;
     }
 
-    const token = localStorage.getItem('token');
     if (!token) {
       toast.error('You must be logged in to create a post');
       return;
@@ -106,7 +107,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       } else if (response.status === 401) {
         toast.error('Session expired. Please log in again.');
         setTimeout(() => {
-          window.location.href = '/login';
+          router.push('/login');
         }, 2000);
       } else {
         toast.error(data.error || 'An error occurred');
@@ -171,17 +172,14 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         )}
 
         <Tooltip
-          label={
-            !localStorage.getItem('token')
-              ? 'Please log in to create a post'
-              : ''
-          }
+          label={!token ? 'Please log in to create a post' : undefined} // Show tooltip only when logged out
           withArrow
+          disabled={!!token} // Disable the tooltip entirely when logged in
         >
           <Button
             onClick={handleSubmit}
             fullWidth
-            disabled={!localStorage.getItem('token')}
+            disabled={!token} // Disable button if no token
           >
             Create Post
           </Button>

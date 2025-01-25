@@ -5,7 +5,7 @@ import {
   ColorSchemeScript,
   mantineHtmlProps,
 } from '@mantine/core';
-import { theme } from '../theme';
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata = {
   title: 'Play Grade',
@@ -13,7 +13,11 @@ export const metadata = {
     'Social media platform for the critical discussion of games, film/tv and music.',
 };
 
-export default function RootLayout({ children }: { children: any }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
@@ -25,7 +29,11 @@ export default function RootLayout({ children }: { children: any }) {
         />
       </head>
       <body>
-        <MantineProvider defaultColorScheme="dark">{children}</MantineProvider>
+        <AuthProvider>
+          <MantineProvider defaultColorScheme="dark">
+            {children}
+          </MantineProvider>
+        </AuthProvider>
       </body>
     </html>
   );

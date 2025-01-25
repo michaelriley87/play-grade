@@ -15,6 +15,7 @@ import {
 } from '@mantine/core';
 import { useRouter, usePathname } from 'next/navigation';
 import { IconThumbUp, IconMessageCircle, IconTrash } from '@tabler/icons-react';
+import { useAuth } from '@/context/AuthContext';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -23,11 +24,6 @@ const categoryIcons: { [key: string]: string } = {
   F: '🎥',
   M: '🎵',
 };
-
-interface DecodedJWT {
-  user_id: string;
-  is_admin: boolean;
-}
 
 interface PostProps {
   post_id: number;
@@ -41,7 +37,6 @@ interface PostProps {
   image_url?: string;
   username: string;
   profile_picture?: string;
-  currentUser: DecodedJWT | null;
 }
 
 export default function Post({
@@ -56,12 +51,12 @@ export default function Post({
   image_url,
   username,
   profile_picture,
-  currentUser,
 }: PostProps) {
+  const { user, token } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
+  const handleDeleteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
     const confirmed = window.confirm(
@@ -69,29 +64,29 @@ export default function Post({
     );
     if (!confirmed) return;
 
-    const token = localStorage.getItem('token');
     if (!token) {
       console.error('No token found. Please log in.');
       return;
     }
 
-    fetch(`${API_URL}/posts/${post_id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (response.ok) {
-          window.location.href = '/';
-        } else {
-          response
-            .json()
-            .then((err) => console.error('Failed to delete the post:', err));
-        }
-      })
-      .catch((err) => console.error('Error during delete request:', err));
+    try {
+      const response = await fetch(`${API_URL}/posts/${post_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        window.location.href = '/';
+      } else {
+        const err = await response.json();
+        console.error('Failed to delete the post:', err);
+      }
+    } catch (err) {
+      console.error('Error during delete request:', err);
+    }
   };
 
   const handleClick = () => {
@@ -100,15 +95,14 @@ export default function Post({
   };
 
   const canDelete =
-    currentUser &&
-    (Number(currentUser.user_id) === poster_id || currentUser.is_admin);
+    user && (Number(user.user_id) === poster_id || user.is_admin);
 
   return (
     <Card
       withBorder
       style={{
         cursor: pathname === `/post/${post_id}` ? 'default' : 'pointer',
-        width: '100%'
+        width: '100%',
       }}
       onClick={handleClick}
     >

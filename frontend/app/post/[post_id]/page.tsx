@@ -7,7 +7,7 @@ import { Button, Container, Stack, Loader } from '@mantine/core';
 import { IconArrowLeft } from '@tabler/icons-react';
 import Post from '@/components/post';
 import Reply from '@/components/reply';
-import jwt from 'jsonwebtoken';
+import { useAuth } from '@/context/AuthContext';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -37,14 +37,10 @@ interface ReplyData {
   profile_picture?: string;
 }
 
-interface DecodedJWT {
-  user_id: string;
-  is_admin: boolean;
-}
-
 export default function PostPage() {
   const { post_id } = useParams<{ post_id: string }>();
   const router = useRouter();
+  const { user, token } = useAuth();
   const [post, setPost] = useState<PostData | null>(null);
   const [replies, setReplies] = useState<ReplyData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +48,11 @@ export default function PostPage() {
   useEffect(() => {
     const fetchPostAndReplies = async () => {
       try {
-        const res = await fetch(`${API_URL}/posts/${post_id}`);
+        const res = await fetch(`${API_URL}/posts/${post_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!res.ok) {
           throw new Error('Post not found');
         }
@@ -68,23 +68,31 @@ export default function PostPage() {
     };
 
     fetchPostAndReplies();
-  }, [post_id, router]);
-
-  const token = localStorage.getItem('token');
-  const currentUser = useMemo(() => {
-    if (!token) return null;
-    try {
-      return jwt.decode(token) as DecodedJWT | null;
-    } catch (error) {
-      console.error('Failed to decode JWT:', error);
-      return null;
-    }
-  }, [token]);
+  }, [post_id, router, token]);
 
   if (loading) {
     return (
       <Container size="sm" className="full-height">
         <Loader size="lg" />
+      </Container>
+    );
+  }
+
+  if (!post) {
+    return (
+      <Container size="sm" style={{ paddingTop: '20px' }}>
+        <Header />
+        <Stack align="center" style={{ marginBottom: '1rem' }}>
+          <Button
+            leftSection={<IconArrowLeft size={16} />}
+            onClick={() => router.push('/')}
+          >
+            Home
+          </Button>
+        </Stack>
+        <Stack align="center">
+          <p>Post not found.</p>
+        </Stack>
       </Container>
     );
   }
@@ -101,7 +109,7 @@ export default function PostPage() {
         </Button>
       </Stack>
       <Stack align="center">
-        {post && <Post {...post} currentUser={currentUser} />}
+        <Post {...post} />
         <Stack align="start" style={{ width: '100%', marginBottom: '1rem' }}>
           {replies.map((reply) => (
             <Reply key={reply.reply_id} {...reply} />

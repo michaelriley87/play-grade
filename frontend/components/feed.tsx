@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Post from './post';
-import jwt from 'jsonwebtoken';
+import { useAuth } from '@/context/AuthContext';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -33,14 +33,10 @@ interface PostData {
   profile_picture: string;
 }
 
-interface DecodedJWT {
-  user_id: string;
-  is_admin: boolean;
-}
-
 export default function Feed({ filters }: FeedProps) {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { token } = useAuth();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -55,9 +51,17 @@ export default function Feed({ filters }: FeedProps) {
           searchQuery: filters.searchQuery,
         });
 
+        const headers: HeadersInit = token
+          ? { Authorization: `Bearer ${token}` }
+          : {};
+
         const response = await fetch(
-          `${API_URL}/posts?${queryParams.toString()}`
+          `${API_URL}/posts?${queryParams.toString()}`,
+          {
+            headers,
+          }
         );
+
         const data = await response.json();
 
         if (response.ok) {
@@ -73,18 +77,7 @@ export default function Feed({ filters }: FeedProps) {
     };
 
     fetchPosts();
-  }, [filters]);
-
-  const token = localStorage.getItem('token');
-  const currentUser = useMemo(() => {
-    if (!token) return null;
-    try {
-      return jwt.decode(token) as DecodedJWT | null;
-    } catch (error) {
-      console.error('Failed to decode token:', error);
-      return null;
-    }
-  }, [token]);
+  }, [filters, token]);
 
   if (isLoading) return <div>Loading...</div>;
   if (posts.length === 0) return <div>No posts found.</div>;
@@ -93,7 +86,7 @@ export default function Feed({ filters }: FeedProps) {
     <Stack>
       <ToastContainer position="bottom-center" />
       {posts.map((post) => (
-        <Post key={post.post_id} {...post} currentUser={currentUser} />
+        <Post key={post.post_id} {...post} />
       ))}
     </Stack>
   );

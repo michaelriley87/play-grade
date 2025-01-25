@@ -1,6 +1,15 @@
 'use client';
 
-import { Avatar, Card, Text, Group, Stack, ActionIcon, Tooltip, Anchor } from '@mantine/core';
+import {
+  Avatar,
+  Card,
+  Text,
+  Group,
+  Stack,
+  ActionIcon,
+  Tooltip,
+  Anchor,
+} from '@mantine/core';
 import { IconThumbUp } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 

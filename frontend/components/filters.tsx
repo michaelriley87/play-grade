@@ -8,6 +8,7 @@ import {
   Title,
   Group,
 } from '@mantine/core';
+import { useAuth } from '@/context/AuthContext';
 
 interface FiltersProps {
   currentFilters: {
@@ -30,6 +31,8 @@ export default function Filters({
   const userOptions = ['All Users', 'Followed Users'];
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments'];
+
+  const { user } = useAuth();
 
   const [selectedFilters, setSelectedFilters] = useState<string[]>(
     currentFilters.categories
@@ -94,9 +97,7 @@ export default function Filters({
               <Chip
                 key={option}
                 value={option}
-                disabled={
-                  option === 'Followed Users' && !localStorage.getItem('token')
-                }
+                disabled={option === 'Followed Users' && !user}
               >
                 {option}
               </Chip>

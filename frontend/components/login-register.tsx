@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
   Card,
@@ -9,6 +11,7 @@ import {
 } from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -17,6 +20,7 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const { setToken } = useAuth();
   const router = useRouter();
 
   const isValidEmail = (email: string) =>
@@ -55,11 +59,10 @@ export default function LoginRegister({ onClose }: { onClose: () => void }) {
 
       if (response.ok) {
         if (activeTab === 'login') {
-          localStorage.setItem('token', data.token);
+          setToken(data.token);
           toast.success('Login successful!');
-
           setTimeout(() => {
-            window.location.reload();
+            router.push('/');
           }, 2000);
         } else {
           toast.success('Registration successful! You can now log in.');

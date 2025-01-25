@@ -6,7 +6,6 @@ import Feed from '@/components/feed';
 import CreatePost from '@/components/create-post';
 import LoginRegister from '@/components/login-register';
 import Account from '@/components/account';
-import User from '@/components/user';
 import { useState } from 'react';
 import {
   Button,
@@ -16,8 +15,11 @@ import {
   Stack,
   Box,
 } from '@mantine/core';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
+  const { user } = useAuth();
+
   const [filters, setFilters] = useState({
     categories: ['🎮 Games', '🎥 Film/TV', '🎵 Music'],
     users: 'All Users',
@@ -60,7 +62,7 @@ export default function HomePage() {
             onClick={() => toggleComponent('account')}
             variant={isActive('account') ? 'outline' : 'filled'}
           >
-            Account
+            {user ? 'Account' : 'Login'}
           </Button>
         </Button.Group>
 
@@ -107,7 +109,7 @@ export default function HomePage() {
           >
             {(styles) => (
               <Paper style={styles} shadow="md">
-                {localStorage.getItem('token') ? (
+                {user ? (
                   <Account onClose={() => toggleComponent('')} />
                 ) : (
                   <LoginRegister onClose={() => toggleComponent('')} />

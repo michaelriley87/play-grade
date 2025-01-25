@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Avatar,
   Button,
@@ -14,18 +14,14 @@ import {
   Anchor,
 } from '@mantine/core';
 import { IconEdit, IconTrash, IconLogout } from '@tabler/icons-react';
-import jwt from 'jsonwebtoken';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const API_URL = 'http://127.0.0.1:5000';
 
 interface UserData {
   username: string;
   profile_picture?: string;
-}
-
-interface DecodedJWT {
-  user_id: string;
-  is_admin: boolean;
 }
 
 export default function Account({ onClose }: { onClose: () => void }) {
@@ -39,26 +35,23 @@ export default function Account({ onClose }: { onClose: () => void }) {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
-  const token = localStorage.getItem('token');
-  const currentUser = useMemo(() => {
-    if (!token) return null;
-    try {
-      return jwt.decode(token) as DecodedJWT | null;
-    } catch (error) {
-      console.error('Failed to decode token:', error);
-      return null;
-    }
-  }, [token]);
+  const { user, token, setToken } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!currentUser?.user_id) {
+      if (!user || !token) {
         setIsLoading(false);
         return;
       }
 
       try {
-        const response = await fetch(`${API_URL}/users/${currentUser.user_id}`);
+        const response = await fetch(`${API_URL}/users/${user.user_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const data = await response.json();
 
         if (response.ok) {
@@ -74,11 +67,11 @@ export default function Account({ onClose }: { onClose: () => void }) {
     };
 
     fetchUserData();
-  }, [currentUser]);
+  }, [user, token]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.reload();
+    setToken(null);
+    router.push('/');
   };
 
   const toggleEditField = (
@@ -101,7 +94,7 @@ export default function Account({ onClose }: { onClose: () => void }) {
         {/* Profile Info Section */}
         <Flex direction="column" align="center" style={{ gap: '8px' }}>
           <Anchor
-            href={`/user/${currentUser?.user_id}`}
+            href={`/user/${user?.user_id}`}
             style={{ textDecoration: 'none' }}
           >
             <Avatar
@@ -119,18 +112,12 @@ export default function Account({ onClose }: { onClose: () => void }) {
             </Avatar>
           </Anchor>
           <Anchor
-            href={`/user/${currentUser?.user_id}`}
+            href={`/user/${user?.user_id}`}
             style={{ textDecoration: 'none', color: 'inherit' }}
           >
             <Title order={4} style={{ margin: 0, textAlign: 'center' }}>
               {userData.username}
             </Title>
-          </Anchor>
-          <Anchor
-            href={`/user/${currentUser?.user_id}`}
-            style={{ fontSize: '0.875rem', color: '#1e88e5' }}
-          >
-            View Profile
           </Anchor>
         </Flex>
 
