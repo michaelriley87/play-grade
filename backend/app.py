@@ -1420,6 +1420,17 @@ def create_reply(decoded_token):
             (post_id, user_id, body, image_url)
         )
         reply_id = cur.fetchone()['reply_id']
+
+        # Increment the reply count for the related post
+        cur.execute(
+            """
+            UPDATE posts
+            SET reply_count = reply_count + 1
+            WHERE post_id = %s
+            """,
+            (post_id,)
+        )
+
         conn.commit()
 
         return jsonify({"message": "Reply created successfully", "reply_id": reply_id}), 201
@@ -1469,11 +1480,13 @@ def delete_reply(decoded_token, reply_id):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Check if the reply exists
-        cur.execute("SELECT replier_id FROM replies WHERE reply_id = %s", (reply_id,))
+        cur.execute("SELECT post_id, replier_id FROM replies WHERE reply_id = %s", (reply_id,))
         reply = cur.fetchone()
 
         if not reply:
             return jsonify({"error": "Reply not found"}), 404
+
+        post_id = reply['post_id']
 
         # Check permissions
         if reply['replier_id'] != user_id and not is_admin:
@@ -1481,6 +1494,17 @@ def delete_reply(decoded_token, reply_id):
 
         # Delete the reply
         cur.execute("DELETE FROM replies WHERE reply_id = %s", (reply_id,))
+
+        # Decrement the reply count for the related post
+        cur.execute(
+            """
+            UPDATE posts
+            SET reply_count = reply_count - 1
+            WHERE post_id = %s AND reply_count > 0
+            """,
+            (post_id,)
+        )
+
         conn.commit()
 
         return jsonify({"message": "Reply deleted successfully"}), 200

@@ -28,7 +28,7 @@ export default function Feed({ filters = {} }: FeedProps) {
           ageRange: filters.ageRange || '',
           sortBy: filters.sortBy || '',
           searchQuery: filters.searchQuery || '',
-          posterId: filters.posterId || '', // Ensure posterId is passed correctly
+          posterId: filters.posterId || '',
           page: currentPage.toString(),
           limit: '5',
         });
