@@ -767,15 +767,15 @@ def get_post_with_replies(post_id):
         cur.close()
         conn.close()
 
-# Get multiple posts using query parameters
+# Get multiple posts using query parameters and pagination
 @app.route('/posts', methods=['GET'])
 def get_posts():
     """
-    Retrieve posts with optional filters.
+    Retrieve posts with optional filters and pagination.
     ---
     tags:
       - Posts
-    description: This endpoint retrieves posts based on filters such as categories, users, age range, poster ID, and search queries. Posts can also be sorted by newest, most liked, or most commented.
+    description: This endpoint retrieves posts based on filters such as categories, users, age range, poster ID, and search queries. Posts can also be sorted by newest, most liked, or most commented. Pagination is supported using `page` and `limit`.
     parameters:
       - name: categories
         in: query
@@ -785,7 +785,7 @@ def get_posts():
           type: array
           items:
             type: string
-          example: ["🎮 Games", "🎥 Film/TV, 🎵 Music"]
+          example: ["🎮 Games", "🎥 Film/TV", "🎵 Music"]
       - name: users
         in: query
         required: false
@@ -824,9 +824,62 @@ def get_posts():
         schema:
           type: integer
           example: 123
+      - name: page
+        in: query
+        required: false
+        description: The page number for pagination (default is 1).
+        schema:
+          type: integer
+          example: 1
+      - name: limit
+        in: query
+        required: false
+        description: The number of posts per page (default is 10).
+        schema:
+          type: integer
+          example: 10
     responses:
       200:
         description: Posts retrieved successfully.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                posts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      post_id:
+                        type: integer
+                      poster_id:
+                        type: integer
+                      title:
+                        type: string
+                      category:
+                        type: string
+                      body:
+                        type: string
+                      image_url:
+                        type: string
+                      like_count:
+                        type: integer
+                      reply_count:
+                        type: integer
+                      created_at:
+                        type: string
+                        format: date-time
+                      username:
+                        type: string
+                      profile_picture:
+                        type: string
+                totalPages:
+                  type: integer
+                  description: Total number of pages available.
+                currentPage:
+                  type: integer
+                  description: The current page number.
       400:
         description: Invalid input.
       500:
@@ -845,7 +898,12 @@ def get_posts():
         search_query = request.args.get('searchQuery', '')
         poster_id = request.args.get('posterId', None)
 
-        # Start building the SQL query with a JOIN to include username and profile_picture
+        # Pagination
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 10))
+        offset = (page - 1) * limit
+
+        # Base query for posts
         query = """
             SELECT 
                 posts.post_id, 
@@ -863,18 +921,27 @@ def get_posts():
             JOIN users ON posts.poster_id = users.user_id
             WHERE 1=1
         """
+        # Base query for counting posts
+        count_query = """
+            SELECT COUNT(*)
+            FROM posts
+            JOIN users ON posts.poster_id = users.user_id
+            WHERE 1=1
+        """
         params = []
 
         # Filter by categories
         if categories:
             placeholders = ', '.join(['%s'] * len(categories))
             query += f" AND posts.category IN ({placeholders})"
+            count_query += f" AND posts.category IN ({placeholders})"
             params.extend(categories)
 
         # Filter by user type
         if users == 'Followed Users':
             followed_user_ids = [1, 2, 3]  # Example hardcoded values
             query += " AND posts.poster_id = ANY(%s)"
+            count_query += " AND posts.poster_id = ANY(%s)"
             params.append(followed_user_ids)
 
         # Filter by age range
@@ -887,17 +954,20 @@ def get_posts():
             }
             if age_range in time_intervals:
                 query += " AND posts.created_at >= NOW() - INTERVAL %s"
+                count_query += " AND posts.created_at >= NOW() - INTERVAL %s"
                 params.append(time_intervals[age_range])
 
         # Filter by search query
         if search_query:
             query += " AND (LOWER(posts.title) LIKE %s OR LOWER(posts.body) LIKE %s)"
+            count_query += " AND (LOWER(posts.title) LIKE %s OR LOWER(posts.body) LIKE %s)"
             search_term = f"%{search_query.lower()}%"
             params.extend([search_term, search_term])
 
         # Filter by poster ID
         if poster_id:
             query += " AND posts.poster_id = %s"
+            count_query += " AND posts.poster_id = %s"
             params.append(int(poster_id))
 
         # Sorting
@@ -908,20 +978,37 @@ def get_posts():
         }
         query += f" ORDER BY {sort_columns.get(sort_by, 'posts.created_at DESC')}"
 
-        # Execute the query
+        # Add pagination to the main query
+        query += " LIMIT %s OFFSET %s"
+        params.extend([limit, offset])
+
+        # Execute queries
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Fetch filtered posts
         cur.execute(query, tuple(params))
         posts = cur.fetchall()
 
-        return jsonify(posts), 200
+        # Fetch total post count
+        cur.execute(count_query, tuple(params[:-2]))  # Exclude LIMIT and OFFSET
+        total_posts = cur.fetchone()["count"]
+        total_pages = (total_posts + limit - 1) // limit  # Calculate total pages
+
+        return jsonify({
+            "posts": posts,
+            "totalPages": total_pages,
+            "currentPage": page
+        }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
     finally:
-        cur.close()
-        conn.close()
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 # Like post or comment
 @app.route('/likes', methods=['POST'])

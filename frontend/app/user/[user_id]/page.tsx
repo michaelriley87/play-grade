@@ -24,7 +24,6 @@ export default function ProfilePage() {
       </Stack>
       <Stack align="center">
         <User user_id={user_id} />
-        {/* Pass user_id as posterId to Feed */}
         <Feed filters={{ posterId: user_id }} />
       </Stack>
     </Container>
