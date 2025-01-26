@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { Avatar, Card, Flex, Title } from '@mantine/core';
+import React, { useEffect, useState } from 'react';
 import { UserProps, UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -13,7 +13,7 @@ export default function User({ user_id }: UserProps) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`${API_URL}/users/${user_id}`);
+        const response = await fetch(API_URL + '/users/' + user_id);
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
         }
@@ -49,8 +49,8 @@ export default function User({ user_id }: UserProps) {
     <Card withBorder style={{ width: '100%' }}>
       <Flex direction='column' align='center' style={{ gap: '8px' }}>
         <Avatar
-          src={userData?.profile_picture ? `${API_URL}${userData.profile_picture}` : undefined}
-          alt={`${userData?.username || 'User'}'s Profile Picture`}
+          src={userData?.profile_picture ? API_URL + userData.profile_picture : undefined}
+          alt={(userData?.username || 'User') + "'s Profile Picture"}
           radius='xl'
           size={80}
         >

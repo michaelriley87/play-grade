@@ -1,6 +1,6 @@
 import '@mantine/core/styles.css';
-import React from 'react';
 import { MantineProvider, ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
+import React from 'react';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata = {

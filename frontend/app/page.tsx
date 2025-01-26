@@ -1,13 +1,13 @@
 'use client';
 
-import Header from '@/components/header';
-import Filters from '@/components/filters';
-import Feed from '@/components/feed';
-import CreatePost from '@/components/create-post';
-import LoginRegister from '@/components/login-register';
-import Account from '@/components/account';
-import { useState } from 'react';
 import { Button, Transition, Paper, Container, Stack, Box } from '@mantine/core';
+import { useState } from 'react';
+import Account from '@/components/account';
+import CreatePost from '@/components/create-post';
+import Feed from '@/components/feed';
+import Filters from '@/components/filters';
+import Header from '@/components/header';
+import LoginRegister from '@/components/login-register';
 import { useAuth } from '@/context/auth-context';
 
 export default function HomePage() {

@@ -1,8 +1,8 @@
 'use client';
 
 import { Avatar, Card, Text, Group, Image, Stack, Title, ActionIcon, Tooltip, Badge, Anchor } from '@mantine/core';
-import { useRouter, usePathname } from 'next/navigation';
 import { IconThumbUp, IconMessageCircle, IconTrash } from '@tabler/icons-react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { PostProps } from '@/types/interfaces';
 
@@ -43,11 +43,11 @@ export default function Post({
     }
 
     try {
-      const response = await fetch(`${API_URL}/posts/${post_id}`, {
+      const response = await fetch(API_URL + '/posts/' + post_id, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: 'Bearer ' + token
         }
       });
 
@@ -63,8 +63,8 @@ export default function Post({
   };
 
   const handleClick = () => {
-    if (pathname === `/post/${post_id}`) return;
-    router.push(`/post/${post_id}`);
+    if (pathname === '/post/' + post_id) return;
+    router.push('/post/' + post_id);
   };
 
   const canDelete = user && (Number(user.user_id) === poster_id || user.is_admin);
@@ -73,14 +73,14 @@ export default function Post({
     <Card
       withBorder
       style={{
-        cursor: pathname === `/post/${post_id}` ? 'default' : 'pointer',
+        cursor: pathname === '/post/' + post_id ? 'default' : 'pointer',
         width: '100%'
       }}
       onClick={handleClick}
     >
       <Group justify='space-between' style={{ marginBottom: '1rem' }}>
         <Group align='center'>
-          <Anchor href={`/user/${poster_id}`} style={{ textDecoration: 'none' }} onClick={e => e.stopPropagation()}>
+          <Anchor href={'/user/' + poster_id} style={{ textDecoration: 'none' }} onClick={e => e.stopPropagation()}>
             <Avatar
               src={profile_picture ? API_URL + profile_picture : undefined}
               alt={username || 'User'}
@@ -92,7 +92,7 @@ export default function Post({
           </Anchor>
           <Stack style={{ marginLeft: '1rem' }}>
             <Anchor
-              href={`/user/${poster_id}`}
+              href={'/user/' + poster_id}
               style={{ textDecoration: 'none', color: 'inherit' }}
               onClick={e => e.stopPropagation()}
             >
@@ -107,16 +107,13 @@ export default function Post({
           {categoryIcons[category] || '❓'}
         </Badge>
       </Group>
-
       <Text fw={600} size='lg' style={{ marginBottom: '0.5rem' }}>
         {title}
       </Text>
       <Text size='sm' c='dimmed' style={{ marginBottom: '1rem' }}>
         {body}
       </Text>
-
       {image_url && <Image src={API_URL + image_url} alt={title} radius='md' style={{ marginBottom: '1rem' }} />}
-
       <Group justify='space-between' align='center'>
         <Group>
           <Tooltip label='Like' withArrow>

@@ -1,9 +1,9 @@
 'use client';
 
 import { Card, TextInput, Textarea, Button, FileInput, Image, Chip, Stack, Group, Text, Tooltip } from '@mantine/core';
-import { useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
 import 'react-toastify/dist/ReactToastify.css';
@@ -70,10 +70,10 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       formData.append('body', body);
       formData.append('image', image);
 
-      const response = await fetch(`${API_URL}/posts`, {
+      const response = await fetch(API_URL + '/posts', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: 'Bearer ' + token
         },
         body: formData
       });
@@ -82,7 +82,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
 
       if (response.ok) {
         toast.success('Post created successfully!');
-        router.push(`/post/${data.post_id}`);
+        router.push('/post/' + data.post_id);
         setTitle('');
         setCategory(null);
         setBody('');

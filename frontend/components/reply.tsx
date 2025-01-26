@@ -14,11 +14,11 @@ export default function Reply({ replier_id, body, username, profile_picture, lik
       <Group align='flex-start'>
         {/* Profile picture linking to user's profile */}
         <Anchor
-          href={`/user/${replier_id}`}
+          href={'/user/' + replier_id}
           style={{ textDecoration: 'none' }}
           onClick={e => {
             e.stopPropagation();
-            router.push(`/user/${replier_id}`);
+            router.push('/user/' + replier_id);
           }}
         >
           <Avatar
@@ -34,11 +34,11 @@ export default function Reply({ replier_id, body, username, profile_picture, lik
           <Group align='center' justify='space-between'>
             {/* Username linking to user's profile */}
             <Anchor
-              href={`/user/${replier_id}`}
+              href={'/user/' + replier_id}
               style={{ textDecoration: 'none', color: 'inherit' }}
               onClick={e => {
                 e.stopPropagation();
-                router.push(`/user/${replier_id}`);
+                router.push('/user/' + replier_id);
               }}
             >
               <Text>{username || 'Unknown User'}</Text>

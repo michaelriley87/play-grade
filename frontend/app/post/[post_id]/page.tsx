@@ -1,12 +1,12 @@
 'use client';
 
-import Header from '@/components/header';
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import { Container, Stack, Loader } from '@mantine/core';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import BackButton from '@/components/back-button';
+import Header from '@/components/header';
 import Post from '@/components/post';
 import Reply from '@/components/reply';
-import BackButton from '@/components/back-button';
 import { useAuth } from '@/context/auth-context';
 import { PostData, ReplyData } from '@/types/interfaces';
 
@@ -23,9 +23,9 @@ export default function PostPage() {
   useEffect(() => {
     const fetchPostAndReplies = async () => {
       try {
-        const res = await fetch(`${API_URL}/posts/${post_id}`, {
+        const res = await fetch(API_URL + '/posts/' + post_id, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: 'Bearer ' + token
           }
         });
         if (!res.ok) {

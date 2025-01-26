@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
 import { Card, TextInput, PasswordInput, Button, Tabs, Stack } from '@mantine/core';
-import { ToastContainer, toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -38,7 +38,7 @@ export default function LoginRegister() {
     const body = activeTab === 'login' ? { email, password } : { username, email, password };
 
     try {
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetch(API_URL + endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)

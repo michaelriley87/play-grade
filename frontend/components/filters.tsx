@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { Card, Chip, TextInput, Button, Stack, Group } from '@mantine/core';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { FiltersProps } from '@/types/interfaces';
 

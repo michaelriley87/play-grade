@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { Avatar, Button, Card, Stack, TextInput, PasswordInput, Title, Divider, Flex, Anchor } from '@mantine/core';
 import { IconEdit, IconTrash, IconLogout } from '@tabler/icons-react';
-import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/context/auth-context';
 import { UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -31,9 +31,9 @@ export default function Account() {
       }
 
       try {
-        const response = await fetch(`${API_URL}/users/${user.user_id}`, {
+        const response = await fetch(API_URL + '/users/' + user.user_id, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: 'Bearer ' + token
           }
         });
 
@@ -73,9 +73,9 @@ export default function Account() {
       <Stack gap='md' style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}>
         {/* Profile Info Section */}
         <Flex direction='column' align='center' style={{ gap: '8px' }}>
-          <Anchor href={`/user/${user?.user_id}`} style={{ textDecoration: 'none' }}>
+          <Anchor href={'/user/' + user?.user_id} style={{ textDecoration: 'none' }}>
             <Avatar
-              src={userData.profile_picture ? `${API_URL}${userData.profile_picture}` : undefined}
+              src={userData.profile_picture ? API_URL + userData.profile_picture : undefined}
               alt='Profile Picture'
               radius='xl'
               size={80}
@@ -83,12 +83,12 @@ export default function Account() {
               {!userData.profile_picture && userData.username.charAt(0).toUpperCase()}
             </Avatar>
           </Anchor>
-          <Anchor href={`/user/${user?.user_id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Anchor href={'/user/' + user?.user_id} style={{ textDecoration: 'none', color: 'inherit' }}>
             <Title order={4} style={{ margin: 0, textAlign: 'center' }}>
               {userData.username}
             </Title>
           </Anchor>
-          <Anchor href={`/user/${user?.user_id}`} style={{ textDecoration: 'underline', color: '#007bff' }}>
+          <Anchor href={'/user/' + user?.user_id} style={{ textDecoration: 'underline', color: '#007bff' }}>
             View Profile
           </Anchor>
         </Flex>

@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Stack, Pagination } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Post from './post';
 import { useAuth } from '@/context/auth-context';
 import { PostData, FeedProps } from '@/types/interfaces';
+import Post from './post';
 
 const API_URL = 'http://127.0.0.1:5000';
 
@@ -33,9 +33,9 @@ export default function Feed({ filters = {} }: FeedProps) {
           limit: '5'
         });
 
-        const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: HeadersInit = token ? { Authorization: 'Bearer ' + token } : {};
 
-        const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`, { headers });
+        const response = await fetch(API_URL + '/posts?' + queryParams.toString(), { headers });
 
         const data = await response.json();
 

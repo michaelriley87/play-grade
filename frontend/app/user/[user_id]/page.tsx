@@ -1,12 +1,12 @@
 'use client';
 
-import Header from '@/components/header';
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { Container, Stack, Loader } from '@mantine/core';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import BackButton from '@/components/back-button';
-import User from '@/components/user';
 import Feed from '@/components/feed';
+import Header from '@/components/header';
+import User from '@/components/user';
 import { UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -20,7 +20,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`${API_URL}/users/${numericUserId}`);
+        const response = await fetch(API_URL + '/users/' + numericUserId);
         if (!response.ok) {
           throw new Error('User not found');
         }
