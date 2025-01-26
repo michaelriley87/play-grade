@@ -72,7 +72,6 @@ export default function LoginRegister() {
 
   return (
     <Card withBorder style={{ width: '100%' }}>
-      <ToastContainer position='bottom-center' />
       <Stack>
         <Tabs
           value={activeTab}
@@ -88,19 +87,8 @@ export default function LoginRegister() {
           <Tabs.Panel value='login'>
             <form onSubmit={handleSubmit}>
               <Stack mt='md'>
-                <TextInput
-                  label='Email'
-                  placeholder='Enter your email'
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  type='email'
-                />
-                <PasswordInput
-                  label='Password'
-                  placeholder='Enter your password (min 8 characters)'
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
+                <TextInput label='Email' placeholder='Enter your email' value={email} onChange={e => setEmail(e.target.value)} type='email' />
+                <PasswordInput label='Password' placeholder='Enter your password (min 8 characters)' value={password} onChange={e => setPassword(e.target.value)} />
                 <Button type='submit' fullWidth>
                   Login
                 </Button>
@@ -111,25 +99,9 @@ export default function LoginRegister() {
           <Tabs.Panel value='register'>
             <form onSubmit={handleSubmit}>
               <Stack mt='md'>
-                <TextInput
-                  label='Username'
-                  placeholder='Enter your username'
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                />
-                <TextInput
-                  label='Email'
-                  placeholder='Enter your email'
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  type='email'
-                />
-                <PasswordInput
-                  label='Password'
-                  placeholder='Enter your password (min 8 characters)'
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
+                <TextInput label='Username' placeholder='Enter your username' value={username} onChange={e => setUsername(e.target.value)} />
+                <TextInput label='Email' placeholder='Enter your email' value={email} onChange={e => setEmail(e.target.value)} type='email' />
+                <PasswordInput label='Password' placeholder='Enter your password (min 8 characters)' value={password} onChange={e => setPassword(e.target.value)} />
                 <Button type='submit' fullWidth>
                   Register
                 </Button>
@@ -138,6 +110,7 @@ export default function LoginRegister() {
           </Tabs.Panel>
         </Tabs>
       </Stack>
+      <ToastContainer position='bottom-center' />
     </Card>
   );
 }

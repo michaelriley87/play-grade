@@ -1,9 +1,7 @@
 'use client';
 
-import { Stack, Pagination } from '@mantine/core';
+import { Card, Stack, Pagination } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '@/context/auth-context';
 import { PostData, FeedProps } from '@/types/interfaces';
 import Post from './post';
@@ -20,38 +18,34 @@ export default function Feed({ filters = {} }: FeedProps) {
   useEffect(() => {
     const fetchPosts = async () => {
       setIsLoading(true);
-
-      try {
-        const queryParams = new URLSearchParams({
-          categories: filters.categories?.join(',') || '',
-          users: filters.users || '',
-          ageRange: filters.ageRange || '',
-          sortBy: filters.sortBy || '',
-          searchQuery: filters.searchQuery || '',
-          posterId: filters.posterId?.toString() || '',
-          page: currentPage.toString(),
-          limit: '5'
-        });
-
-        const headers: HeadersInit = token ? { Authorization: 'Bearer ' + token } : {};
-
-        const response = await fetch(API_URL + '/posts?' + queryParams.toString(), { headers });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          setPosts(data.posts);
-          setTotalPages(data.totalPages);
-        } else {
-          toast.error(data.error || 'Failed to retrieve posts');
+      const response = await fetch(
+        API_URL +
+          '/posts?categories=' +
+          (filters.categories?.join(',') || '') +
+          '&users=' +
+          (filters.users || '') +
+          '&ageRange=' +
+          (filters.ageRange || '') +
+          '&sortBy=' +
+          (filters.sortBy || '') +
+          '&searchQuery=' +
+          (filters.searchQuery || '') +
+          '&posterId=' +
+          (filters.posterId?.toString() || '') +
+          '&page=' +
+          currentPage +
+          '&limit=5',
+        {
+          headers: token ? { Authorization: `Bearer ` + token } : {}
         }
-      } catch (error) {
-        toast.error('An error occurred while fetching posts');
-      } finally {
-        setIsLoading(false);
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setPosts(data.posts);
+        setTotalPages(data.totalPages);
       }
+      setIsLoading(false);
     };
-
     fetchPosts();
   }, [filters, token, currentPage]);
 
@@ -59,16 +53,28 @@ export default function Feed({ filters = {} }: FeedProps) {
     setCurrentPage(1);
   }, [filters]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (posts.length === 0) return <div>No posts found.</div>;
+  if (isLoading) {
+    return (
+      <Card shadow='sm' padding='lg' radius='md' withBorder>
+        Loading...
+      </Card>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <Card shadow='sm' padding='lg' radius='md' withBorder>
+        No Posts found.
+      </Card>
+    );
+  }
 
   return (
     <Stack align='center' justify='center' style={{ width: '100%' }}>
-      <ToastContainer position='bottom-center' />
       {posts.map(post => (
         <Post key={post.post_id} {...post} />
       ))}
-      <Pagination total={totalPages} value={currentPage} onChange={setCurrentPage} withControls withEdges />
+      <Pagination total={totalPages} value={currentPage} onChange={setCurrentPage} style={{ margin: '20px' }} />
     </Stack>
   );
 }

@@ -93,12 +93,7 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
         </Group>
 
         {/* Search Textbox */}
-        <TextInput
-          label='Search'
-          placeholder='Search by query...'
-          value={searchQuery}
-          onChange={event => setSearchQuery(event.currentTarget.value)}
-        />
+        <TextInput label='Search' placeholder='Search by query...' value={searchQuery} onChange={event => setSearchQuery(event.currentTarget.value)} />
 
         {/* Update Results Button */}
         <Button fullWidth onClick={handleUpdateResults}>

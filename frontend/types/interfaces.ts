@@ -1,3 +1,14 @@
+export interface ControlsPanelProps {
+  filters: {
+    categories: string[];
+    users: string;
+    ageRange: string;
+    sortBy: string;
+    searchQuery: string;
+  };
+  onUpdateFilters: (newFilters: { categories: string[]; users: string; ageRange: string; sortBy: string; searchQuery: string }) => void;
+}
+
 export interface PostData {
   post_id: number;
   poster_id: number;
@@ -85,4 +96,10 @@ export interface ReplyProps {
 
 export interface UserProps {
   user_id: number;
+}
+
+export interface AuthData {
+  user: { user_id: number; is_admin: boolean } | null;
+  token: string | null;
+  setToken: (token: string | null) => void;
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { Container, Stack, Loader } from '@mantine/core';
-import { useParams, useRouter } from 'next/navigation';
+import { Container, Stack, Text, Loader } from '@mantine/core';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import BackButton from '@/components/back-button';
 import Header from '@/components/header';
@@ -14,39 +14,31 @@ const API_URL = 'http://127.0.0.1:5000';
 
 export default function PostPage() {
   const { post_id } = useParams<{ post_id: string }>();
-  const router = useRouter();
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [post, setPost] = useState<PostData | null>(null);
   const [replies, setReplies] = useState<ReplyData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPostAndReplies = async () => {
-      try {
-        const res = await fetch(API_URL + '/posts/' + post_id, {
-          headers: {
-            Authorization: 'Bearer ' + token
-          }
-        });
-        if (!res.ok) {
-          throw new Error('Post not found');
+      const response = await fetch(API_URL + '/posts/' + post_id, {
+        headers: {
+          Authorization: 'Bearer ' + token
         }
-        const data = await res.json();
+      });
+      if (response.ok) {
+        const data = await response.json();
         setPost(data.post);
         setReplies(data.replies);
-      } catch (error) {
-        console.error('Error fetching post and replies:', error);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
-
     fetchPostAndReplies();
-  }, [post_id, router, token]);
+  }, [post_id, token]);
 
   if (loading) {
     return (
-      <Container size='sm' className='full-height'>
+      <Container size='sm'>
         <Loader size='lg' />
       </Container>
     );
@@ -57,7 +49,7 @@ export default function PostPage() {
       <Container size='sm' style={{ paddingTop: '20px' }}>
         <Header />
         <Stack align='center'>
-          <p>Post not found.</p>
+          <Text>Post not found.</Text>
           <BackButton />
         </Stack>
       </Container>
@@ -70,7 +62,7 @@ export default function PostPage() {
         <Header />
         <BackButton />
         <Post {...post} />
-        <Stack align='start' style={{ width: '100%', marginBottom: '1rem' }}>
+        <Stack align='start' style={{ width: '100%', marginBottom: '20px' }}>
           {replies.map(reply => (
             <Reply key={reply.reply_id} {...reply} />
           ))}

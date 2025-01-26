@@ -12,20 +12,13 @@ export default function User({ user_id }: UserProps) {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const response = await fetch(API_URL + '/users/' + user_id);
-        if (!response.ok) {
-          throw new Error('Failed to fetch user data');
-        }
+      const response = await fetch(API_URL + '/users/' + user_id);
+      if (response.ok) {
         const data = await response.json();
         setUserData(data);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
     };
-
     fetchUserData();
   }, [user_id]);
 
@@ -48,12 +41,7 @@ export default function User({ user_id }: UserProps) {
   return (
     <Card withBorder style={{ width: '100%' }}>
       <Flex direction='column' align='center' style={{ gap: '8px' }}>
-        <Avatar
-          src={userData?.profile_picture ? API_URL + userData.profile_picture : undefined}
-          alt={(userData?.username || 'User') + "'s Profile Picture"}
-          radius='xl'
-          size={80}
-        >
+        <Avatar src={userData?.profile_picture ? API_URL + userData.profile_picture : undefined} radius='xl' size={100}>
           {!userData?.profile_picture && userData?.username?.charAt(0).toUpperCase()}
         </Avatar>
         <Title order={4} style={{ margin: 0, textAlign: 'center' }}>

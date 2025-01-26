@@ -1,6 +1,6 @@
 'use client';
 
-import { Container, Stack, Loader } from '@mantine/core';
+import { Container, Stack, Loader, Text } from '@mantine/core';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import BackButton from '@/components/back-button';
@@ -11,34 +11,26 @@ import { UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function ProfilePage() {
+export default function UserPage() {
   const { user_id } = useParams<{ user_id: string }>();
-  const numericUserId = Number(user_id);
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const response = await fetch(API_URL + '/users/' + numericUserId);
-        if (!response.ok) {
-          throw new Error('User not found');
-        }
+      const response = await fetch(API_URL + '/users/' + user_id);
+      if (response.ok) {
         const data = await response.json();
         setUser(data);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
-
     fetchUser();
-  }, [numericUserId]);
+  }, [user_id]);
 
   if (loading) {
     return (
-      <Container size='sm' className='full-height'>
+      <Container size='sm'>
         <Loader size='lg' />
       </Container>
     );
@@ -49,7 +41,7 @@ export default function ProfilePage() {
       <Container size='sm' style={{ paddingTop: '20px' }}>
         <Header />
         <Stack align='center'>
-          <p>User not found.</p>
+          <Text>User not found.</Text>
           <BackButton />
         </Stack>
       </Container>
@@ -62,7 +54,7 @@ export default function ProfilePage() {
         <Header />
         <BackButton />
         <User {...user} />
-        <Feed filters={{ posterId: numericUserId }} />
+        <Feed filters={{ posterId: Number(user_id) }} />
       </Stack>
     </Container>
   );

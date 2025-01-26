@@ -104,17 +104,8 @@ export default function CreatePost({ onClose }: CreatePostProps) {
 
   return (
     <Card withBorder style={{ width: '100%' }}>
-      <ToastContainer position='bottom-center' />
-
       <Stack>
-        <TextInput
-          label='Title'
-          placeholder='Enter title (max 100 characters)'
-          maxLength={100}
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-
+        <TextInput label='Title' placeholder='Enter title (max 100 characters)' maxLength={100} value={title} onChange={e => setTitle(e.target.value)} />
         <Stack>
           <Text size='sm'>Select Category</Text>
           <Chip.Group multiple={false} value={category} onChange={(value: string) => setCategory(value)}>
@@ -127,27 +118,16 @@ export default function CreatePost({ onClose }: CreatePostProps) {
             </Group>
           </Chip.Group>
         </Stack>
-
-        <Textarea
-          label='Body'
-          placeholder='Enter body content (max 300 characters)'
-          maxLength={300}
-          value={body}
-          onChange={e => setBody(e.target.value)}
-        />
-
+        <Textarea label='Body' placeholder='Enter body content (max 300 characters)' maxLength={300} value={body} onChange={e => setBody(e.target.value)} />
         <FileInput label='Upload an image' placeholder='Choose file' accept='image/*' onChange={handleImageChange} />
-
-        {imagePreview && (
-          <Image src={imagePreview} alt='Image Preview' radius='md' style={{ marginTop: '10px', maxWidth: '100%' }} />
-        )}
-
+        {imagePreview && <Image src={imagePreview} alt='Image Preview' radius='md' style={{ marginTop: '10px', maxWidth: '100%' }} />}
         <Tooltip label={!token ? 'Please log in to create a post' : undefined} withArrow disabled={!!token}>
           <Button onClick={handleSubmit} fullWidth disabled={!token}>
             Create Post
           </Button>
         </Tooltip>
       </Stack>
+      <ToastContainer position='bottom-center' />
     </Card>
   );
 }

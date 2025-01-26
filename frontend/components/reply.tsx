@@ -5,8 +5,9 @@ import { IconThumbUp } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { ReplyProps } from '@/types/interfaces';
 
+const API_URL = 'http://127.0.0.1:5000';
+
 export default function Reply({ replier_id, body, username, profile_picture, like_count, created_at }: ReplyProps) {
-  const API_URL = 'http://127.0.0.1:5000';
   const router = useRouter();
 
   return (
@@ -21,12 +22,7 @@ export default function Reply({ replier_id, body, username, profile_picture, lik
             router.push('/user/' + replier_id);
           }}
         >
-          <Avatar
-            src={profile_picture ? API_URL + profile_picture : undefined}
-            alt={username || 'User'}
-            radius='xl'
-            size='md'
-          >
+          <Avatar src={profile_picture ? API_URL + profile_picture : undefined} alt={username || 'User'} radius='xl' size='md'>
             {!profile_picture && username?.charAt(0).toUpperCase()}
           </Avatar>
         </Anchor>
@@ -52,7 +48,7 @@ export default function Reply({ replier_id, body, username, profile_picture, lik
           </Text>
         </Stack>
       </Group>
-      <Group justify='flex-start' style={{ marginTop: '1rem' }}>
+      <Group justify='flex-start'>
         <Tooltip label='Like' withArrow>
           <ActionIcon variant='light' color='blue' radius='xl' onClick={e => e.stopPropagation()}>
             <IconThumbUp size={18} />

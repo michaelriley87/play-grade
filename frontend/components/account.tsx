@@ -9,7 +9,7 @@ import { UserData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function Account() {
+export default function Account({ onClose }: { onClose: () => void }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [editDisplayPicture, setEditDisplayPicture] = useState(false);
@@ -29,28 +29,17 @@ export default function Account() {
         setIsLoading(false);
         return;
       }
-
-      try {
-        const response = await fetch(API_URL + '/users/' + user.user_id, {
-          headers: {
-            Authorization: 'Bearer ' + token
-          }
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          setUserData(data);
-        } else {
-          console.error(data.error || 'Failed to retrieve user data');
+      const response = await fetch(API_URL + '/users/' + user.user_id, {
+        headers: {
+          Authorization: 'Bearer ' + token
         }
-      } catch (error) {
-        console.error('An error occurred while fetching user data', error);
-      } finally {
-        setIsLoading(false);
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setUserData(data);
       }
+      setIsLoading(false);
     };
-
     fetchUserData();
   }, [user, token]);
 
@@ -74,12 +63,7 @@ export default function Account() {
         {/* Profile Info Section */}
         <Flex direction='column' align='center' style={{ gap: '8px' }}>
           <Anchor href={'/user/' + user?.user_id} style={{ textDecoration: 'none' }}>
-            <Avatar
-              src={userData.profile_picture ? API_URL + userData.profile_picture : undefined}
-              alt='Profile Picture'
-              radius='xl'
-              size={80}
-            >
+            <Avatar src={userData.profile_picture ? API_URL + userData.profile_picture : undefined} alt='Profile Picture' radius='xl' size={80}>
               {!userData.profile_picture && userData.username.charAt(0).toUpperCase()}
             </Avatar>
           </Anchor>
@@ -104,11 +88,7 @@ export default function Account() {
         </Flex>
         {editDisplayPicture && (
           <Stack gap='xs'>
-            <TextInput
-              placeholder='New display picture URL'
-              value={newDisplayPicture}
-              onChange={e => setNewDisplayPicture(e.target.value)}
-            />
+            <TextInput placeholder='New display picture URL' value={newDisplayPicture} onChange={e => setNewDisplayPicture(e.target.value)} />
             <Button size='compact-md'>Submit</Button>
           </Stack>
         )}
@@ -136,11 +116,7 @@ export default function Account() {
         </Flex>
         {editPassword && (
           <Stack gap='xs'>
-            <PasswordInput
-              placeholder='New password'
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-            />
+            <PasswordInput placeholder='New password' value={newPassword} onChange={e => setNewPassword(e.target.value)} />
             <Button size='compact-md'>Submit</Button>
           </Stack>
         )}
@@ -152,7 +128,14 @@ export default function Account() {
           <IconTrash size={14} style={{ marginRight: '8px' }} />
           Delete Account
         </Button>
-        <Button color='red' style={{ width: '100%' }} onClick={handleLogout}>
+        <Button
+          color='red'
+          style={{ width: '100%' }}
+          onClick={() => {
+            handleLogout();
+            onClose();
+          }}
+        >
           <IconLogout size={14} style={{ marginRight: '8px' }} />
           Logout
         </Button>
