@@ -12,15 +12,11 @@ interface AuthData {
 const AuthContext = createContext<AuthData>({
   user: null,
   token: null,
-  setToken: () => {},
+  setToken: () => {}
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem('token')
-  );
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [user, setUser] = useState<{
     user_id: string;
     is_admin: boolean;
@@ -50,11 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [token]);
 
-  return (
-    <AuthContext.Provider value={{ user, token, setToken }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, token, setToken }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

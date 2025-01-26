@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Card, Chip, TextInput, Button, Stack, Group } from '@mantine/core';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth-context';
 import { FiltersProps } from '@/types/interfaces';
 
-export default function Filters({
-  currentFilters,
-  onUpdateFilters,
-  onClose,
-}: FiltersProps) {
+export default function Filters({ currentFilters, onUpdateFilters, onClose }: FiltersProps) {
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
   const userOptions = ['All Users', 'Followed Users'];
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
@@ -15,9 +11,7 @@ export default function Filters({
 
   const { user } = useAuth();
 
-  const [selectedFilters, setSelectedFilters] = useState<string[]>(
-    currentFilters.categories
-  );
+  const [selectedFilters, setSelectedFilters] = useState<string[]>(currentFilters.categories);
   const [users, setUsers] = useState(currentFilters.users);
   const [ageRange, setAgeRange] = useState(currentFilters.ageRange);
   const [sortBy, setSortBy] = useState(currentFilters.sortBy);
@@ -33,9 +27,7 @@ export default function Filters({
 
   const handleFilterChange = (values: string[]) => {
     if (values.length === 0) {
-      const remainingCategories = categoryOptions.filter(
-        (option) => !selectedFilters.includes(option)
-      );
+      const remainingCategories = categoryOptions.filter(option => !selectedFilters.includes(option));
       setSelectedFilters(remainingCategories);
     } else {
       setSelectedFilters(values);
@@ -48,7 +40,7 @@ export default function Filters({
       users,
       ageRange,
       sortBy,
-      searchQuery,
+      searchQuery
     });
     onClose();
   };
@@ -57,13 +49,9 @@ export default function Filters({
     <Card withBorder style={{ width: '100%' }}>
       <Stack>
         {/* Category Filters */}
-        <Group justify="center">
-          <Chip.Group
-            multiple
-            value={selectedFilters}
-            onChange={handleFilterChange}
-          >
-            {categoryOptions.map((option) => (
+        <Group justify='center'>
+          <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
+            {categoryOptions.map(option => (
               <Chip key={option} value={option}>
                 {option}
               </Chip>
@@ -72,14 +60,10 @@ export default function Filters({
         </Group>
 
         {/* User Options */}
-        <Group justify="center">
+        <Group justify='center'>
           <Chip.Group multiple={false} value={users} onChange={setUsers}>
-            {userOptions.map((option) => (
-              <Chip
-                key={option}
-                value={option}
-                disabled={option === 'Followed Users' && !user}
-              >
+            {userOptions.map(option => (
+              <Chip key={option} value={option} disabled={option === 'Followed Users' && !user}>
                 {option}
               </Chip>
             ))}
@@ -87,9 +71,9 @@ export default function Filters({
         </Group>
 
         {/* Age Range */}
-        <Group justify="center">
+        <Group justify='center'>
           <Chip.Group multiple={false} value={ageRange} onChange={setAgeRange}>
-            {ageOptions.map((option) => (
+            {ageOptions.map(option => (
               <Chip key={option} value={option}>
                 {option}
               </Chip>
@@ -98,9 +82,9 @@ export default function Filters({
         </Group>
 
         {/* Sort By */}
-        <Group justify="center">
+        <Group justify='center'>
           <Chip.Group multiple={false} value={sortBy} onChange={setSortBy}>
-            {sortOptions.map((option) => (
+            {sortOptions.map(option => (
               <Chip key={option} value={option}>
                 {option}
               </Chip>
@@ -110,10 +94,10 @@ export default function Filters({
 
         {/* Search Textbox */}
         <TextInput
-          label="Search"
-          placeholder="Search by query..."
+          label='Search'
+          placeholder='Search by query...'
           value={searchQuery}
-          onChange={(event) => setSearchQuery(event.currentTarget.value)}
+          onChange={event => setSearchQuery(event.currentTarget.value)}
         />
 
         {/* Update Results Button */}

@@ -1,30 +1,68 @@
 'use client';
 
 import Header from '@/components/header';
-import { useParams, useRouter } from 'next/navigation';
-import { Button, Container, Stack } from '@mantine/core';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { Container, Stack, Loader } from '@mantine/core';
+import BackButton from '@/components/back-button';
 import User from '@/components/user';
 import Feed from '@/components/feed';
+import { UserData } from '@/types/interfaces';
+
+const API_URL = 'http://127.0.0.1:5000';
 
 export default function ProfilePage() {
   const { user_id } = useParams<{ user_id: string }>();
-  const router = useRouter();
+  const numericUserId = Number(user_id);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${API_URL}/users/${numericUserId}`);
+        if (!response.ok) {
+          throw new Error('User not found');
+        }
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [numericUserId]);
+
+  if (loading) {
+    return (
+      <Container size='sm' className='full-height'>
+        <Loader size='lg' />
+      </Container>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Container size='sm' style={{ paddingTop: '20px' }}>
+        <Header />
+        <Stack align='center'>
+          <p>User not found.</p>
+          <BackButton />
+        </Stack>
+      </Container>
+    );
+  }
 
   return (
-    <Container size="sm" style={{ paddingTop: '20px' }}>
-      <Header />
-      <Stack align="center" style={{ marginBottom: '1rem' }}>
-        <Button
-          leftSection={<IconArrowLeft size={16} />}
-          onClick={() => router.push('/')}
-        >
-          Home
-        </Button>
-      </Stack>
-      <Stack align="center">
-        <User user_id={user_id} />
-        <Feed filters={{ posterId: user_id }} />
+    <Container style={{ width: '100vw', display: 'flex', justifyContent: 'center' }}>
+      <Stack align='center' style={{ width: '750px' }}>
+        <Header />
+        <BackButton />
+        <User {...user} />
+        <Feed filters={{ posterId: numericUserId }} />
       </Stack>
     </Container>
   );

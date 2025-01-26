@@ -31,7 +31,7 @@ export default function User({ user_id }: UserProps) {
 
   if (isLoading) {
     return (
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
+      <Card shadow='sm' padding='lg' radius='md' withBorder>
         Loading...
       </Card>
     );
@@ -39,7 +39,7 @@ export default function User({ user_id }: UserProps) {
 
   if (!userData) {
     return (
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
+      <Card shadow='sm' padding='lg' radius='md' withBorder>
         Failed to load user data.
       </Card>
     );
@@ -47,19 +47,14 @@ export default function User({ user_id }: UserProps) {
 
   return (
     <Card withBorder style={{ width: '100%' }}>
-      <Flex direction="column" align="center" style={{ gap: '8px' }}>
+      <Flex direction='column' align='center' style={{ gap: '8px' }}>
         <Avatar
-          src={
-            userData.profile_picture
-              ? `${API_URL}${userData.profile_picture}`
-              : undefined
-          }
-          alt="Profile Picture"
-          radius="xl"
+          src={userData?.profile_picture ? `${API_URL}${userData.profile_picture}` : undefined}
+          alt={`${userData?.username || 'User'}'s Profile Picture`}
+          radius='xl'
           size={80}
         >
-          {!userData.profile_picture &&
-            userData.username.charAt(0).toUpperCase()}
+          {!userData?.profile_picture && userData?.username?.charAt(0).toUpperCase()}
         </Avatar>
         <Title order={4} style={{ margin: 0, textAlign: 'center' }}>
           {userData.username}

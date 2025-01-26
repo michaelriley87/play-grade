@@ -1,13 +1,13 @@
 'use client';
 
 import Header from '@/components/header';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button, Container, Stack, Loader } from '@mantine/core';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { Container, Stack, Loader } from '@mantine/core';
 import Post from '@/components/post';
 import Reply from '@/components/reply';
-import { useAuth } from '@/context/AuthContext';
+import BackButton from '@/components/back-button';
+import { useAuth } from '@/context/auth-context';
 import { PostData, ReplyData } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -25,8 +25,8 @@ export default function PostPage() {
       try {
         const res = await fetch(`${API_URL}/posts/${post_id}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
         if (!res.ok) {
           throw new Error('Post not found');
@@ -36,7 +36,6 @@ export default function PostPage() {
         setReplies(data.replies);
       } catch (error) {
         console.error('Error fetching post and replies:', error);
-        router.push('/');
       } finally {
         setLoading(false);
       }
@@ -47,46 +46,32 @@ export default function PostPage() {
 
   if (loading) {
     return (
-      <Container size="sm" className="full-height">
-        <Loader size="lg" />
+      <Container size='sm' className='full-height'>
+        <Loader size='lg' />
       </Container>
     );
   }
 
   if (!post) {
     return (
-      <Container size="sm" style={{ paddingTop: '20px' }}>
+      <Container size='sm' style={{ paddingTop: '20px' }}>
         <Header />
-        <Stack align="center" style={{ marginBottom: '1rem' }}>
-          <Button
-            leftSection={<IconArrowLeft size={16} />}
-            onClick={() => router.push('/')}
-          >
-            Home
-          </Button>
-        </Stack>
-        <Stack align="center">
+        <Stack align='center'>
           <p>Post not found.</p>
+          <BackButton />
         </Stack>
       </Container>
     );
   }
 
   return (
-    <Container size="sm" style={{ paddingTop: '20px' }}>
-      <Header />
-      <Stack align="center" style={{ marginBottom: '1rem' }}>
-        <Button
-          leftSection={<IconArrowLeft size={16} />}
-          onClick={() => router.push('/')}
-        >
-          Home
-        </Button>
-      </Stack>
-      <Stack align="center">
+    <Container style={{ width: '100vw', display: 'flex', justifyContent: 'center' }}>
+      <Stack align='center' style={{ width: '750px' }}>
+        <Header />
+        <BackButton />
         <Post {...post} />
-        <Stack align="start" style={{ width: '100%', marginBottom: '1rem' }}>
-          {replies.map((reply) => (
+        <Stack align='start' style={{ width: '100%', marginBottom: '1rem' }}>
+          {replies.map(reply => (
             <Reply key={reply.reply_id} {...reply} />
           ))}
         </Stack>

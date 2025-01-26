@@ -25,6 +25,7 @@ export interface ReplyData {
 }
 
 export interface UserData {
+  user_id: number;
   username: string;
   profile_picture?: string;
 }
@@ -40,7 +41,7 @@ export interface FeedProps {
     ageRange?: string;
     sortBy?: string;
     searchQuery?: string;
-    posterId?: string;
+    posterId?: number;
   };
 }
 
@@ -83,5 +84,5 @@ export interface ReplyProps {
 }
 
 export interface UserProps {
-  user_id: string | number;
+  user_id: number;
 }

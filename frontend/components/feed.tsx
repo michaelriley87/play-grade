@@ -5,7 +5,7 @@ import { Stack, Pagination } from '@mantine/core';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Post from './post';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth-context';
 import { PostData, FeedProps } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -28,19 +28,14 @@ export default function Feed({ filters = {} }: FeedProps) {
           ageRange: filters.ageRange || '',
           sortBy: filters.sortBy || '',
           searchQuery: filters.searchQuery || '',
-          posterId: filters.posterId || '',
+          posterId: filters.posterId?.toString() || '',
           page: currentPage.toString(),
-          limit: '5',
+          limit: '5'
         });
 
-        const headers: HeadersInit = token
-          ? { Authorization: `Bearer ${token}` }
-          : {};
+        const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
-        const response = await fetch(
-          `${API_URL}/posts?${queryParams.toString()}`,
-          { headers }
-        );
+        const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`, { headers });
 
         const data = await response.json();
 
@@ -68,18 +63,12 @@ export default function Feed({ filters = {} }: FeedProps) {
   if (posts.length === 0) return <div>No posts found.</div>;
 
   return (
-    <Stack align="center" justify="center">
-      <ToastContainer position="bottom-center" />
-      {posts.map((post) => (
+    <Stack align='center' justify='center' style={{ width: '100%' }}>
+      <ToastContainer position='bottom-center' />
+      {posts.map(post => (
         <Post key={post.post_id} {...post} />
       ))}
-      <Pagination
-        total={totalPages}
-        value={currentPage}
-        onChange={setCurrentPage}
-        withControls
-        withEdges
-      />
+      <Pagination total={totalPages} value={currentPage} onChange={setCurrentPage} withControls withEdges />
     </Stack>
   );
 }

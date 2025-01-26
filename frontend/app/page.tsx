@@ -7,15 +7,8 @@ import CreatePost from '@/components/create-post';
 import LoginRegister from '@/components/login-register';
 import Account from '@/components/account';
 import { useState } from 'react';
-import {
-  Button,
-  Transition,
-  Paper,
-  Container,
-  Stack,
-  Box,
-} from '@mantine/core';
-import { useAuth } from '@/context/AuthContext';
+import { Button, Transition, Paper, Container, Stack, Box } from '@mantine/core';
+import { useAuth } from '@/context/auth-context';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -25,7 +18,7 @@ export default function HomePage() {
     users: 'All Users',
     ageRange: 'All',
     sortBy: 'Newest',
-    searchQuery: '',
+    searchQuery: ''
   });
 
   const [activeComponent, setActiveComponent] = useState<string>('');
@@ -35,33 +28,24 @@ export default function HomePage() {
   };
 
   const toggleComponent = (component: string) => {
-    setActiveComponent((prev) => (prev === component ? '' : component));
+    setActiveComponent(prev => (prev === component ? '' : component));
   };
 
   const isActive = (component: string) => activeComponent === component;
 
   return (
-    <Container size="sm" style={{ height: '100vh', paddingTop: '20px' }}>
-      <Header />
-      <Stack align="center">
+    <Container style={{ width: '100vw', display: 'flex', justifyContent: 'center' }}>
+      <Stack align='center' style={{ width: '750px' }}>
+        <Header />
         {/* Buttons for toggling components */}
         <Button.Group>
-          <Button
-            onClick={() => toggleComponent('createPost')}
-            variant={isActive('createPost') ? 'outline' : 'filled'}
-          >
+          <Button onClick={() => toggleComponent('createPost')} variant={isActive('createPost') ? 'outline' : 'filled'}>
             Create Post
           </Button>
-          <Button
-            onClick={() => toggleComponent('filters')}
-            variant={isActive('filters') ? 'outline' : 'filled'}
-          >
+          <Button onClick={() => toggleComponent('filters')} variant={isActive('filters') ? 'outline' : 'filled'}>
             Filters
           </Button>
-          <Button
-            onClick={() => toggleComponent('account')}
-            variant={isActive('account') ? 'outline' : 'filled'}
-          >
+          <Button onClick={() => toggleComponent('account')} variant={isActive('account') ? 'outline' : 'filled'}>
             {user ? 'Account' : 'Login'}
           </Button>
         </Button.Group>
@@ -71,12 +55,12 @@ export default function HomePage() {
           {/* Create Post */}
           <Transition
             mounted={activeComponent === 'createPost'}
-            transition="slide-down"
+            transition='slide-down'
             duration={300}
-            timingFunction="ease-in-out"
+            timingFunction='ease-in-out'
           >
-            {(styles) => (
-              <Paper style={styles} shadow="md">
+            {styles => (
+              <Paper style={styles} shadow='md'>
                 <CreatePost onClose={() => toggleComponent('')} />
               </Paper>
             )}
@@ -85,12 +69,12 @@ export default function HomePage() {
           {/* Filters */}
           <Transition
             mounted={activeComponent === 'filters'}
-            transition="slide-down"
+            transition='slide-down'
             duration={300}
-            timingFunction="ease-in-out"
+            timingFunction='ease-in-out'
           >
-            {(styles) => (
-              <Paper style={styles} shadow="md">
+            {styles => (
+              <Paper style={styles} shadow='md'>
                 <Filters
                   currentFilters={filters}
                   onUpdateFilters={handleUpdateFilters}
@@ -103,17 +87,13 @@ export default function HomePage() {
           {/* Account or Login/Register */}
           <Transition
             mounted={activeComponent === 'account'}
-            transition="slide-down"
+            transition='slide-down'
             duration={300}
-            timingFunction="ease-in-out"
+            timingFunction='ease-in-out'
           >
-            {(styles) => (
-              <Paper style={styles} shadow="md">
-                {user ? (
-                  <Account onClose={() => toggleComponent('')} />
-                ) : (
-                  <LoginRegister onClose={() => toggleComponent('')} />
-                )}
+            {styles => (
+              <Paper style={styles} shadow='md'>
+                {user ? <Account /> : <LoginRegister />}
               </Paper>
             )}
           </Transition>
