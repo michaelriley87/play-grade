@@ -1,4 +1,5 @@
-import { Card, Chip, TextInput, Button, Stack, Group } from '@mantine/core';
+import { Card, Chip, TextInput, Button, Stack, Group, ActionIcon } from '@mantine/core';
+import { IconX } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { FiltersProps } from '@/types/interfaces';
@@ -43,6 +44,10 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
       searchQuery
     });
     onClose();
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery(''); // Clear the search query
   };
 
   return (
@@ -92,8 +97,21 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
           </Chip.Group>
         </Group>
 
-        {/* Search Textbox */}
-        <TextInput label='Search' placeholder='Search by query...' value={searchQuery} onChange={event => setSearchQuery(event.currentTarget.value)} />
+        {/* Search Textbox with Clear Button */}
+        <TextInput
+          label='Search'
+          placeholder='Search by query...'
+          value={searchQuery}
+          onChange={event => setSearchQuery(event.currentTarget.value)}
+          maxLength={50}
+          rightSection={
+            searchQuery && (
+              <ActionIcon onClick={handleClearSearch}>
+                <IconX size={16} />
+              </ActionIcon>
+            )
+          }
+        />
 
         {/* Update Results Button */}
         <Button fullWidth onClick={handleUpdateResults}>

@@ -1,9 +1,9 @@
 'use client';
 
-import { Avatar, Button, Card, Stack, TextInput, PasswordInput, Title, Divider, Flex, Anchor } from '@mantine/core';
+import { Avatar, Button, Card, Stack, TextInput, PasswordInput, Title, Divider, Flex, Anchor, Transition, Text, Box } from '@mantine/core';
 import { IconEdit, IconTrash, IconLogout } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { UserData } from '@/types/interfaces';
 
@@ -12,14 +12,10 @@ const API_URL = 'http://127.0.0.1:5000';
 export default function Account({ onClose }: { onClose: () => void }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [editDisplayPicture, setEditDisplayPicture] = useState(false);
-  const [editUsername, setEditUsername] = useState(false);
-  const [editPassword, setEditPassword] = useState(false);
-
+  const [openForm, setOpenForm] = useState<'displayPicture' | 'username' | 'password' | null>(null);
   const [newDisplayPicture, setNewDisplayPicture] = useState('');
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
-
   const { user, token, setToken } = useAuth();
   const router = useRouter();
 
@@ -29,15 +25,9 @@ export default function Account({ onClose }: { onClose: () => void }) {
         setIsLoading(false);
         return;
       }
-      const response = await fetch(API_URL + '/users/' + user.user_id, {
-        headers: {
-          Authorization: 'Bearer ' + token
-        }
-      });
+      const response = await fetch(API_URL + '/users/' + user.user_id, { headers: { Authorization: 'Bearer ' + token } });
       const data = await response.json();
-      if (response.ok) {
-        setUserData(data);
-      }
+      if (response.ok) setUserData(data);
       setIsLoading(false);
     };
     fetchUserData();
@@ -48,20 +38,33 @@ export default function Account({ onClose }: { onClose: () => void }) {
     router.push('/');
   };
 
-  const toggleEditField = (field: 'displayPicture' | 'username' | 'password') => {
-    if (field === 'displayPicture') setEditDisplayPicture(!editDisplayPicture);
-    if (field === 'username') setEditUsername(!editUsername);
-    if (field === 'password') setEditPassword(!editPassword);
+  const handleDeleteAccount = async () => {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        const response = await fetch(API_URL + '/users/' + user?.user_id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+        if (response.ok) {
+          alert('Account deleted successfully.');
+          handleLogout();
+        } else {
+          alert('Failed to delete account.');
+        }
+      } catch {
+        alert('An error occurred while deleting your account.');
+      }
+    }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!userData) return <div>Failed to load user data.</div>;
+  const toggleForm = (form: 'displayPicture' | 'username' | 'password') => {
+    setOpenForm(prev => (prev === form ? null : form));
+  };
+
+  if (isLoading) return <Text>Loading...</Text>;
+  if (!userData) return <Text>Failed to load user data.</Text>;
 
   return (
     <Card withBorder style={{ width: '100%' }}>
       <Stack gap='md' style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}>
-        {/* Profile Info Section */}
-        <Flex direction='column' align='center' style={{ gap: '8px' }}>
+        <Flex direction='column' align='center' gap='xs'>
           <Anchor href={'/user/' + user?.user_id} style={{ textDecoration: 'none' }}>
             <Avatar src={userData.profile_picture ? API_URL + userData.profile_picture : undefined} alt='Profile Picture' radius='xl' size={80}>
               {!userData.profile_picture && userData.username.charAt(0).toUpperCase()}
@@ -76,58 +79,62 @@ export default function Account({ onClose }: { onClose: () => void }) {
             View Profile
           </Anchor>
         </Flex>
-
         <Divider my='sm' />
-
-        {/* Change Display Picture */}
         <Flex justify='space-between' align='center' gap='sm'>
-          <span>Change Display Picture</span>
-          <Button size='compact-md' onClick={() => toggleEditField('displayPicture')}>
+          <Text>Change Display Picture</Text>
+          <Button size='compact-md' onClick={() => toggleForm('displayPicture')}>
             <IconEdit size={14} />
           </Button>
         </Flex>
-        {editDisplayPicture && (
-          <Stack gap='xs'>
-            <TextInput placeholder='New display picture URL' value={newDisplayPicture} onChange={e => setNewDisplayPicture(e.target.value)} />
-            <Button size='compact-md'>Submit</Button>
-          </Stack>
-        )}
-
-        {/* Change Username */}
+        <Transition mounted={openForm === 'displayPicture'} transition='slide-down' duration={300}>
+          {styles => (
+            <Box style={styles}>
+              <Stack gap='xs'>
+                <TextInput placeholder='New display picture URL' value={newDisplayPicture} onChange={e => setNewDisplayPicture(e.target.value)} />
+                <Button size='compact-md'>Submit</Button>
+              </Stack>
+            </Box>
+          )}
+        </Transition>
         <Flex justify='space-between' align='center' gap='sm'>
-          <span>Change Username</span>
-          <Button size='compact-md' onClick={() => toggleEditField('username')}>
+          <Text>Change Username</Text>
+          <Button size='compact-md' onClick={() => toggleForm('username')}>
             <IconEdit size={14} />
           </Button>
         </Flex>
-        {editUsername && (
-          <Stack gap='xs'>
-            <TextInput placeholder='New username' value={newUsername} onChange={e => setNewUsername(e.target.value)} />
-            <Button size='compact-md'>Submit</Button>
-          </Stack>
-        )}
-
-        {/* Change Password */}
+        <Transition mounted={openForm === 'username'} transition='slide-down' duration={300}>
+          {styles => (
+            <Box style={styles}>
+              <Stack gap='xs'>
+                <TextInput placeholder='New username' value={newUsername} onChange={e => setNewUsername(e.target.value)} />
+                <Button size='compact-md'>Submit</Button>
+              </Stack>
+            </Box>
+          )}
+        </Transition>
         <Flex justify='space-between' align='center' gap='sm'>
-          <span>Change Password</span>
-          <Button size='compact-md' onClick={() => toggleEditField('password')}>
+          <Text>Change Password</Text>
+          <Button size='compact-md' onClick={() => toggleForm('password')}>
             <IconEdit size={14} />
           </Button>
         </Flex>
-        {editPassword && (
-          <Stack gap='xs'>
-            <PasswordInput placeholder='New password' value={newPassword} onChange={e => setNewPassword(e.target.value)} />
-            <Button size='compact-md'>Submit</Button>
-          </Stack>
-        )}
-
+        <Transition mounted={openForm === 'password'} transition='slide-down' duration={300}>
+          {styles => (
+            <Box style={styles}>
+              <Stack gap='xs'>
+                <PasswordInput placeholder='New password' value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                <Button size='compact-md'>Submit</Button>
+              </Stack>
+            </Box>
+          )}
+        </Transition>
+        <Flex justify='space-between' align='center' gap='sm'>
+          <Text>Delete Account</Text>
+          <Button color='red' size='compact-md' onClick={handleDeleteAccount}>
+            <IconTrash size={14} />
+          </Button>
+        </Flex>
         <Divider my='sm' />
-
-        {/* Account Actions */}
-        <Button color='red' variant='outline' style={{ width: '100%' }}>
-          <IconTrash size={14} style={{ marginRight: '8px' }} />
-          Delete Account
-        </Button>
         <Button
           color='red'
           style={{ width: '100%' }}
@@ -136,8 +143,7 @@ export default function Account({ onClose }: { onClose: () => void }) {
             onClose();
           }}
         >
-          <IconLogout size={14} style={{ marginRight: '8px' }} />
-          Logout
+          <IconLogout size={14} style={{ marginRight: '8px' }} /> Logout
         </Button>
       </Stack>
     </Card>

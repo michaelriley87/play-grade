@@ -4,7 +4,7 @@ import { Container, Stack, Loader, Text } from '@mantine/core';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import BackButton from '@/components/back-button';
-import Feed from '@/components/feed';
+import PostFeed from '@/components/post-feed';
 import Header from '@/components/header';
 import User from '@/components/user';
 import { UserData } from '@/types/interfaces';
@@ -12,7 +12,7 @@ import { UserData } from '@/types/interfaces';
 const API_URL = 'http://127.0.0.1:5000';
 
 export default function UserPage() {
-  const { user_id } = useParams<{ user_id: string }>();
+  const user_id = Number(useParams().user_id);
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +30,14 @@ export default function UserPage() {
 
   if (loading) {
     return (
-      <Container size='sm'>
+      <Container
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
         <Loader size='lg' />
       </Container>
     );
@@ -54,7 +61,7 @@ export default function UserPage() {
         <Header />
         <BackButton />
         <User {...user} />
-        <Feed filters={{ posterId: Number(user_id) }} />
+        <PostFeed filters={{ posterId: user_id }} />
       </Stack>
     </Container>
   );

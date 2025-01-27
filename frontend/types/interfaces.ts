@@ -82,6 +82,9 @@ export interface PostProps {
   profile_picture?: string;
 }
 
+export interface ReplyFeedProps {
+  replies: ReplyData[];
+}
 export interface ReplyProps {
   reply_id: number;
   post_id: number;

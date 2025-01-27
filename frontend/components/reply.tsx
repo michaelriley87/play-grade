@@ -1,19 +1,43 @@
 'use client';
 
 import { Avatar, Card, Text, Group, Stack, ActionIcon, Tooltip, Anchor } from '@mantine/core';
-import { IconThumbUp } from '@tabler/icons-react';
+import { IconThumbUp, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { ReplyProps } from '@/types/interfaces';
+import { useAuth } from '@/context/auth-context';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function Reply({ replier_id, body, username, profile_picture, like_count, created_at }: ReplyProps) {
+export default function Reply({ reply_id, replier_id, body, username, profile_picture, like_count, created_at }: ReplyProps) {
+  const { user, token } = useAuth();
   const router = useRouter();
+
+  const handleDeleteClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const confirmed = window.confirm('Are you sure you want to delete this reply?');
+    if (!confirmed || !token) return;
+
+    const response = await fetch(`${API_URL}/replies/${reply_id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      window.location.reload(); // Refresh the page to reflect changes
+    } else {
+      const error = await response.json();
+      alert(error.error || 'Failed to delete reply.');
+    }
+  };
+
+  const canDelete = user && (user.user_id === replier_id || user.is_admin);
 
   return (
     <Card withBorder style={{ width: '100%' }}>
       <Group align='flex-start'>
-        {/* Profile picture linking to user's profile */}
         <Anchor
           href={'/user/' + replier_id}
           style={{ textDecoration: 'none' }}
@@ -28,7 +52,6 @@ export default function Reply({ replier_id, body, username, profile_picture, lik
         </Anchor>
         <Stack style={{ flexGrow: 1 }}>
           <Group align='center' justify='space-between'>
-            {/* Username linking to user's profile */}
             <Anchor
               href={'/user/' + replier_id}
               style={{ textDecoration: 'none', color: 'inherit' }}
@@ -48,15 +71,25 @@ export default function Reply({ replier_id, body, username, profile_picture, lik
           </Text>
         </Stack>
       </Group>
-      <Group justify='flex-start'>
-        <Tooltip label='Like' withArrow>
-          <ActionIcon variant='light' color='blue' radius='xl' onClick={e => e.stopPropagation()}>
-            <IconThumbUp size={18} />
-          </ActionIcon>
-        </Tooltip>
-        <Text size='sm' c='dimmed'>
-          {like_count}
-        </Text>
+      <Group justify='space-between' align='center' style={{ marginTop: '20px' }}>
+        <Group>
+          <Tooltip label='Like' withArrow>
+            <ActionIcon variant='light' color='blue' radius='xl' onClick={e => e.stopPropagation()}>
+              <IconThumbUp size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Text size='sm' c='dimmed'>
+            {like_count}
+          </Text>
+        </Group>
+        {canDelete && (
+          <Tooltip label='Delete Reply' withArrow>
+            <ActionIcon variant='light' color='red' radius='xl' onClick={handleDeleteClick}>
+              <IconTrash size={18} />
+            </ActionIcon>
+          </Tooltip>
+        )}
+        <div style={{ width: '50px' }} /> {/* Empty space for alignment */}
       </Group>
     </Card>
   );

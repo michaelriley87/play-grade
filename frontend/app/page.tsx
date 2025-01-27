@@ -2,7 +2,7 @@
 
 import { Container, Stack } from '@mantine/core';
 import { useState } from 'react';
-import Feed from '@/components/feed';
+import PostFeed from '@/components/post-feed';
 import Header from '@/components/header';
 import ControlPanel from '@/components/control-panel';
 
@@ -24,7 +24,7 @@ export default function HomePage() {
       <Stack align='center' style={{ width: '750px' }}>
         <Header />
         <ControlPanel filters={filters} onUpdateFilters={handleUpdateFilters} />
-        <Feed filters={filters} />
+        <PostFeed filters={filters} />
       </Stack>
     </Container>
   );
