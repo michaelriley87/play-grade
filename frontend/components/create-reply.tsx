@@ -81,7 +81,6 @@ export default function CreateReply({ postId }: CreateReplyProps) {
         setBody('');
         setImage(null);
         setImagePreview(null);
-        // Reload the page after successful reply creation
         window.location.reload();
       } else if (response.status === 401) {
         toast.error('Session expired. Please log in again.');

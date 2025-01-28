@@ -1350,35 +1350,45 @@ def create_reply(decoded_token):
     description:
         Allows a logged-in user to create a reply for a specific post.
         A valid Bearer token must be included in the Authorization header.
+    consumes:
+      - multipart/form-data
     parameters:
-      - name: body
-        in: body
+      - name: post_id
+        in: formData
         required: true
-        description: Reply details.
-        schema:
-          type: object
-          required:
-            - post_id
-            - body
-          properties:
-            post_id:
-              type: integer
-              description: ID of the post to reply to.
-              example: 123
-            body:
-              type: string
-              maxLength: 300
-              description: The content of the reply.
-              example: "I completely agree with your review!"
-            image_url:
-              type: string
-              description: Optional URL for an image in the reply.
-              example: "/path/to/image.jpg"
+        type: integer
+        description: ID of the post to reply to.
+      - name: body
+        in: formData
+        required: true
+        type: string
+        maxLength: 300
+        description: The content of the reply (max 300 characters).
+      - name: image_url
+        in: formData
+        required: false
+        type: file
+        description: Optional image file for the reply.
     responses:
       201:
         description: Reply created successfully.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Reply created successfully"
+            reply_id:
+              type: integer
+              example: 123
       400:
-        description: Invalid input.
+        description: Invalid input (missing post_id or body, or body exceeds 300 characters).
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Post ID and body are required"
       401:
         description: Authorization token is missing or invalid.
       404:
@@ -1389,11 +1399,11 @@ def create_reply(decoded_token):
       - Bearer: []
     """
     user_id = decoded_token['user_id']
-    data = request.json
 
-    post_id = data.get('post_id')
-    body = data.get('body')
-    image_url = data.get('image_url')  # Optional
+    # Parse form data
+    post_id = request.form.get('post_id')
+    body = request.form.get('body')
+    image = request.files.get('image_url')  # Optional
 
     # Validate required fields
     if not post_id or not body:
@@ -1409,6 +1419,13 @@ def create_reply(decoded_token):
         cur.execute("SELECT 1 FROM posts WHERE post_id = %s", (post_id,))
         if not cur.fetchone():
             return jsonify({"error": "Post not found"}), 404
+
+        # Handle the image file (optional)
+        image_url = None
+        if image:
+            # Save the file and get its path (customize this)
+            image_url = f"/uploads/{image.filename}"
+            image.save(f"./uploads/{image.filename}")
 
         # Insert the reply
         cur.execute(
@@ -1441,7 +1458,7 @@ def create_reply(decoded_token):
     finally:
         cur.close()
         conn.close()
-
+        
 # Delete reply to post
 @app.route('/replies/<int:reply_id>', methods=['DELETE'])
 @token_required
@@ -1480,7 +1497,7 @@ def delete_reply(decoded_token, reply_id):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Check if the reply exists
-        cur.execute("SELECT post_id, replier_id FROM replies WHERE reply_id = %s", (reply_id,))
+        cur.execute("SELECT post_id, replier_id, image_url FROM replies WHERE reply_id = %s", (reply_id,))
         reply = cur.fetchone()
 
         if not reply:
@@ -1491,6 +1508,13 @@ def delete_reply(decoded_token, reply_id):
         # Check permissions
         if reply['replier_id'] != user_id and not is_admin:
             return jsonify({"error": "Unauthorized action"}), 403
+
+        # Delete the image file if it exists
+        image_url = reply.get('image_url')
+        if image_url:
+            absolute_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(image_url))
+            if os.path.exists(absolute_path):
+                os.remove(absolute_path)
 
         # Delete the reply
         cur.execute("DELETE FROM replies WHERE reply_id = %s", (reply_id,))
@@ -1507,7 +1531,7 @@ def delete_reply(decoded_token, reply_id):
 
         conn.commit()
 
-        return jsonify({"message": "Reply deleted successfully"}), 200
+        return jsonify({"message": "Reply and associated image deleted successfully"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

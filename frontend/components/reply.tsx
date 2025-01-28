@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, Card, Text, Group, Stack, ActionIcon, Tooltip, Anchor } from '@mantine/core';
+import { Avatar, Card, Text, Group, Stack, ActionIcon, Tooltip, Anchor, Image } from '@mantine/core';
 import { IconThumbUp, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { ReplyProps } from '@/types/interfaces';
@@ -8,7 +8,7 @@ import { useAuth } from '@/context/auth-context';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function Reply({ reply_id, replier_id, body, username, profile_picture, like_count, created_at }: ReplyProps) {
+export default function Reply({ reply_id, replier_id, body, username, profile_picture, like_count, created_at, image_url }: ReplyProps) {
   const { user, token } = useAuth();
   const router = useRouter();
 
@@ -26,7 +26,7 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
     });
 
     if (response.ok) {
-      window.location.reload(); // Refresh the page to reflect changes
+      window.location.reload();
     } else {
       const error = await response.json();
       alert(error.error || 'Failed to delete reply.');
@@ -69,6 +69,9 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
           <Text size='sm' c='dimmed'>
             {body}
           </Text>
+          {image_url && (
+            <Image src={API_URL + image_url} alt='Reply Image' radius='md' style={{ marginTop: '10px' }} />
+          )}
         </Stack>
       </Group>
       <Group justify='space-between' align='center' style={{ marginTop: '20px' }}>
@@ -89,7 +92,7 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
             </ActionIcon>
           </Tooltip>
         )}
-        <div style={{ width: '50px' }} /> {/* Empty space for alignment */}
+        <div style={{ width: '50px' }} />
       </Group>
     </Card>
   );
