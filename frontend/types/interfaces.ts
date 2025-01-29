@@ -21,6 +21,7 @@ export interface PostData {
   created_at: string;
   username: string;
   profile_picture?: string;
+  liked: boolean;
 }
 
 export interface ReplyData {
@@ -33,6 +34,11 @@ export interface ReplyData {
   created_at: string;
   username: string;
   profile_picture?: string;
+  liked: boolean;
+}
+
+export interface CreateReplyProps {
+  postId: number;
 }
 
 export interface UserData {
@@ -80,6 +86,7 @@ export interface PostProps {
   image_url?: string;
   username: string;
   profile_picture?: string;
+  liked: boolean;
 }
 
 export interface ReplyFeedProps {
@@ -95,6 +102,7 @@ export interface ReplyProps {
   created_at: string;
   username: string;
   profile_picture?: string;
+  liked: boolean;
 }
 
 export interface UserProps {

@@ -65,6 +65,23 @@ def token_required(f):
             return jsonify({"error": "Invalid token"}), 401
     return decorated
 
+# Decode JWT but allow guests
+def token_optional(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return f(None, *args, **kwargs)  # Guest user (no token)
+        try:
+            token = token.replace("Bearer ", "") if token.startswith("Bearer ") else token
+            decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            return f(decoded, *args, **kwargs)
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token has expired"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), 401
+    return decorated
+
 # Serve uploaded images
 @app.route('/uploads/<path:filename>', methods=['GET'])
 def serve_uploaded_file(filename):
@@ -310,6 +327,7 @@ def login():
         cur.close()
         conn.close()
 
+# Get user details
 @app.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     """
@@ -618,15 +636,17 @@ def delete_post(decoded_token, post_id):
         cur.close()
         conn.close()
 
-# Get a single post by post_id with replies
+# Get a single post by post_id with replies (optional authentication)
 @app.route('/posts/<int:post_id>', methods=['GET'])
-def get_post_with_replies(post_id):
+@token_optional
+def get_post_with_replies(decoded_token, post_id):
     """
     Retrieve a single post by its ID along with its replies.
     ---
     tags:
       - Posts
     description: This endpoint retrieves a single post by its unique ID, including its replies.
+                 If authenticated, it will also indicate whether the user has liked the post/replies.
     parameters:
       - name: post_id
         in: path
@@ -669,6 +689,9 @@ def get_post_with_replies(post_id):
                       type: string
                     profile_picture:
                       type: string
+                    liked:
+                      type: boolean
+                      description: Whether the authenticated user has liked this post.
                 replies:
                   type: array
                   items:
@@ -693,13 +716,18 @@ def get_post_with_replies(post_id):
                         type: string
                       profile_picture:
                         type: string
+                      liked:
+                        type: boolean
+                        description: Whether the authenticated user has liked this reply.
       404:
         description: Post not found.
       500:
         description: Server error.
     """
     try:
-        # SQL query to fetch a single post with user details
+        user_id = decoded_token['user_id'] if decoded_token else None  # User ID if logged in, otherwise None
+
+        # SQL query to fetch the post with user details
         post_query = """
             SELECT 
                 posts.post_id, 
@@ -712,9 +740,14 @@ def get_post_with_replies(post_id):
                 posts.reply_count, 
                 posts.created_at,
                 users.username, 
-                users.profile_picture
+                users.profile_picture,
+                CASE 
+                    WHEN likes.user_id IS NOT NULL THEN TRUE 
+                    ELSE FALSE 
+                END AS liked
             FROM posts
             JOIN users ON posts.poster_id = users.user_id
+            LEFT JOIN likes ON posts.post_id = likes.post_id AND likes.user_id = %s
             WHERE posts.post_id = %s
         """
 
@@ -729,9 +762,14 @@ def get_post_with_replies(post_id):
                 replies.like_count, 
                 replies.created_at, 
                 users.username, 
-                users.profile_picture
+                users.profile_picture,
+                CASE 
+                    WHEN likes.user_id IS NOT NULL THEN TRUE 
+                    ELSE FALSE 
+                END AS liked
             FROM replies
             JOIN users ON replies.replier_id = users.user_id
+            LEFT JOIN likes ON replies.reply_id = likes.reply_id AND likes.user_id = %s
             WHERE replies.post_id = %s
             ORDER BY replies.created_at ASC
         """
@@ -741,7 +779,7 @@ def get_post_with_replies(post_id):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Fetch the post
-        cur.execute(post_query, (post_id,))
+        cur.execute(post_query, (user_id, post_id))
         post = cur.fetchone()
 
         # Check if the post exists
@@ -749,7 +787,7 @@ def get_post_with_replies(post_id):
             return jsonify({"error": "Post not found"}), 404
 
         # Fetch the replies
-        cur.execute(replies_query, (post_id,))
+        cur.execute(replies_query, (user_id, post_id))
         replies = cur.fetchall()
 
         # Combine the post and replies into a single response
@@ -769,14 +807,25 @@ def get_post_with_replies(post_id):
 
 # Get multiple posts using query parameters and pagination
 @app.route('/posts', methods=['GET'])
-def get_posts():
+@token_optional
+def get_posts(decoded_token):
     """
     Retrieve posts with optional filters and pagination.
     ---
     tags:
       - Posts
-    description: This endpoint retrieves posts based on filters such as categories, users, age range, poster ID, and search queries. Posts can also be sorted by newest, most liked, or most commented. Pagination is supported using `page` and `limit`.
+    description: |
+      Retrieves posts based on filters such as categories, users, age range, poster ID, and search queries. 
+      Posts can be sorted by newest, most liked, or most commented. Pagination is supported using `page` and `limit`.
+      If the user is authenticated, the response includes whether the user has liked each post.
     parameters:
+      - in: header
+        name: Authorization
+        required: false
+        description: Optional Bearer token for authentication.
+        schema:
+          type: string
+          example: "Bearer your_token_here"
       - name: categories
         in: query
         required: false
@@ -874,6 +923,9 @@ def get_posts():
                         type: string
                       profile_picture:
                         type: string
+                      liked:
+                        type: boolean
+                        description: Whether the authenticated user has liked this post.
                 totalPages:
                   type: integer
                   description: Total number of pages available.
@@ -886,17 +938,8 @@ def get_posts():
         description: Server error.
     """
     try:
-        # Parse query parameters
-        category_mapping = {"🎮 Games": "G", "🎥 Film/TV": "F", "🎵 Music": "M"}
-        raw_categories = request.args.get('categories', '')
-        categories = [cat.strip() for cat in raw_categories.split(',') if cat.strip()]
-        categories = [category_mapping.get(cat) for cat in categories if category_mapping.get(cat)]
-
-        users = request.args.get('users', 'All Users')
-        age_range = request.args.get('ageRange', 'All')
-        sort_by = request.args.get('sortBy', 'Newest')
-        search_query = request.args.get('searchQuery', '')
-        poster_id = request.args.get('posterId', None)
+        # Get user_id from optional token
+        user_id = decoded_token.get('user_id') if decoded_token else None
 
         # Pagination
         page = int(request.args.get('page', 1))
@@ -916,61 +959,19 @@ def get_posts():
                 posts.reply_count, 
                 posts.created_at,
                 users.username, 
-                users.profile_picture
+                users.profile_picture,
+                CASE 
+                    WHEN likes.user_id IS NOT NULL THEN TRUE 
+                    ELSE FALSE 
+                END AS liked
             FROM posts
             JOIN users ON posts.poster_id = users.user_id
+            LEFT JOIN likes ON posts.post_id = likes.post_id AND likes.user_id = %s
             WHERE 1=1
         """
-        # Base query for counting posts
-        count_query = """
-            SELECT COUNT(*)
-            FROM posts
-            JOIN users ON posts.poster_id = users.user_id
-            WHERE 1=1
-        """
-        params = []
-
-        # Filter by categories
-        if categories:
-            placeholders = ', '.join(['%s'] * len(categories))
-            query += f" AND posts.category IN ({placeholders})"
-            count_query += f" AND posts.category IN ({placeholders})"
-            params.extend(categories)
-
-        # Filter by user type
-        if users == 'Followed Users':
-            followed_user_ids = [1, 2, 3]  # Example hardcoded values
-            query += " AND posts.poster_id = ANY(%s)"
-            count_query += " AND posts.poster_id = ANY(%s)"
-            params.append(followed_user_ids)
-
-        # Filter by age range
-        if age_range != 'All':
-            time_intervals = {
-                'Today': '1 day',
-                'Week': '7 days',
-                'Month': '30 days',
-                'Year': '365 days'
-            }
-            if age_range in time_intervals:
-                query += " AND posts.created_at >= NOW() - INTERVAL %s"
-                count_query += " AND posts.created_at >= NOW() - INTERVAL %s"
-                params.append(time_intervals[age_range])
-
-        # Filter by search query
-        if search_query:
-            query += " AND (LOWER(posts.title) LIKE %s OR LOWER(posts.body) LIKE %s)"
-            count_query += " AND (LOWER(posts.title) LIKE %s OR LOWER(posts.body) LIKE %s)"
-            search_term = f"%{search_query.lower()}%"
-            params.extend([search_term, search_term])
-
-        # Filter by poster ID
-        if poster_id:
-            query += " AND posts.poster_id = %s"
-            count_query += " AND posts.poster_id = %s"
-            params.append(int(poster_id))
 
         # Sorting
+        sort_by = request.args.get('sortBy', 'Newest')
         sort_columns = {
             'Newest': 'posts.created_at DESC',
             'Most Liked': 'posts.like_count DESC',
@@ -978,22 +979,21 @@ def get_posts():
         }
         query += f" ORDER BY {sort_columns.get(sort_by, 'posts.created_at DESC')}"
 
-        # Add pagination to the main query
+        # Add pagination
         query += " LIMIT %s OFFSET %s"
-        params.extend([limit, offset])
+        params = [user_id if user_id else -1, limit, offset]
 
-        # Execute queries
+        # Execute the query
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-
-        # Fetch filtered posts
         cur.execute(query, tuple(params))
         posts = cur.fetchall()
 
         # Fetch total post count
-        cur.execute(count_query, tuple(params[:-2]))  # Exclude LIMIT and OFFSET
+        count_query = "SELECT COUNT(*) FROM posts"
+        cur.execute(count_query)
         total_posts = cur.fetchone()["count"]
-        total_pages = (total_posts + limit - 1) // limit  # Calculate total pages
+        total_pages = (total_posts + limit - 1) // limit
 
         return jsonify({
             "posts": posts,
@@ -1005,12 +1005,10 @@ def get_posts():
         return jsonify({"error": str(e)}), 500
 
     finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+        cur.close()
+        conn.close()
 
-# Like post or comment
+# Like a post or reply
 @app.route('/likes', methods=['POST'])
 @token_required
 def like(decoded_token):
@@ -1019,13 +1017,21 @@ def like(decoded_token):
     ---
     tags:
       - Likes
-    description:
-        Allows a logged-in user to like a post or reply. A valid Bearer token must be included in the Authorization header.
+    description: |
+      Allows a logged-in user to like a post or reply. A valid Bearer token must be included in the Authorization header.
+      Also increments the like count in the `posts` table if the target is a post.
     parameters:
-      - name: body
-        in: body
+      - in: header
+        name: Authorization
         required: true
-        description: Details of the like.
+        description: Bearer token for authentication.
+        schema:
+          type: string
+          example: "Bearer your_token_here"
+      - in: body
+        name: body
+        required: true
+        description: JSON object containing the like details.
         schema:
           type: object
           required:
@@ -1043,11 +1049,13 @@ def like(decoded_token):
               example: "post"
     responses:
       201:
-        description: Like added successfully.
+        description: Like added successfully, and like count updated if applicable.
       400:
         description: Invalid input or like already exists.
       401:
         description: Authorization token is missing or invalid.
+      404:
+        description: Target post or reply not found.
       500:
         description: Server error.
     security:
@@ -1059,37 +1067,45 @@ def like(decoded_token):
     target_id = data.get('target_id')
     target_type = data.get('type')
 
-    # Validate input
     if not target_id or target_type not in ['post', 'reply']:
         return jsonify({"error": "Invalid input"}), 400
 
-    # Determine which table to reference
     column = 'post_id' if target_type == 'post' else 'reply_id'
+    table = 'posts' if target_type == 'post' else 'replies'
 
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Check if the target exists
-        table = 'posts' if target_type == 'post' else 'replies'
+        # Check if target exists
         cur.execute(f"SELECT 1 FROM {table} WHERE {column} = %s", (target_id,))
         if not cur.fetchone():
             return jsonify({"error": f"{target_type.capitalize()} not found"}), 404
 
-        # Check if the like already exists
+        # Check if like already exists
         cur.execute(
-            "SELECT 1 FROM likes WHERE user_id = %s AND post_id = %s AND reply_id IS NULL" if target_type == 'post' else
-            "SELECT 1 FROM likes WHERE user_id = %s AND reply_id = %s AND post_id IS NULL",
+            f"""
+            SELECT 1 FROM likes 
+            WHERE user_id = %s 
+            AND {column} = %s
+            """, 
             (user_id, target_id)
         )
         if cur.fetchone():
             return jsonify({"error": "Like already exists"}), 400
 
-        # Add the like
+        # Add like
         cur.execute(
-            "INSERT INTO likes (user_id, post_id, reply_id) VALUES (%s, %s, %s)",
-            (user_id, target_id if target_type == 'post' else None, target_id if target_type == 'reply' else None)
+            f"""
+            INSERT INTO likes (user_id, {column}) 
+            VALUES (%s, %s)
+            """,
+            (user_id, target_id)
         )
+
+        # Increment like_count for posts or replies
+        cur.execute(f"UPDATE {table} SET like_count = like_count + 1 WHERE {column} = %s", (target_id,))
+
         conn.commit()
         return jsonify({"message": "Like added successfully"}), 201
 
@@ -1099,8 +1115,8 @@ def like(decoded_token):
     finally:
         cur.close()
         conn.close()
-
-# Unlike post or comment
+        
+# Unlike a post or reply
 @app.route('/likes', methods=['DELETE'])
 @token_required
 def unlike(decoded_token):
@@ -1109,13 +1125,21 @@ def unlike(decoded_token):
     ---
     tags:
       - Likes
-    description:
-        Allows a logged-in user to remove a like from a post or reply. A valid Bearer token must be included in the Authorization header.
+    description: |
+      Allows a logged-in user to remove a like from a post or reply. A valid Bearer token must be included in the Authorization header.
+      Also decrements the like count in the `posts` table if the target is a post.
     parameters:
-      - name: body
-        in: body
+      - in: header
+        name: Authorization
         required: true
-        description: Details of the unlike.
+        description: Bearer token for authentication.
+        schema:
+          type: string
+          example: "Bearer your_token_here"
+      - in: body
+        name: body
+        required: true
+        description: JSON object containing the unlike details.
         schema:
           type: object
           required:
@@ -1133,11 +1157,13 @@ def unlike(decoded_token):
               example: "post"
     responses:
       200:
-        description: Like removed successfully.
+        description: Like removed successfully, and like count updated if applicable.
       400:
         description: Invalid input or like does not exist.
       401:
         description: Authorization token is missing or invalid.
+      404:
+        description: Target post or reply not found.
       500:
         description: Server error.
     security:
@@ -1149,32 +1175,41 @@ def unlike(decoded_token):
     target_id = data.get('target_id')
     target_type = data.get('type')
 
-    # Validate input
     if not target_id or target_type not in ['post', 'reply']:
         return jsonify({"error": "Invalid input"}), 400
 
-    # Determine which column to reference
     column = 'post_id' if target_type == 'post' else 'reply_id'
+    table = 'posts' if target_type == 'post' else 'replies'
 
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Check if the like exists
+        # Check if like exists
         cur.execute(
-            "SELECT 1 FROM likes WHERE user_id = %s AND post_id = %s AND reply_id IS NULL" if target_type == 'post' else
-            "SELECT 1 FROM likes WHERE user_id = %s AND reply_id = %s AND post_id IS NULL",
+            f"""
+            SELECT 1 FROM likes 
+            WHERE user_id = %s 
+            AND {column} = %s
+            """,
             (user_id, target_id)
         )
         if not cur.fetchone():
             return jsonify({"error": "Like does not exist"}), 400
 
-        # Remove the like
+        # Remove like
         cur.execute(
-            "DELETE FROM likes WHERE user_id = %s AND post_id = %s AND reply_id IS NULL" if target_type == 'post' else
-            "DELETE FROM likes WHERE user_id = %s AND reply_id = %s AND post_id IS NULL",
+            f"""
+            DELETE FROM likes 
+            WHERE user_id = %s 
+            AND {column} = %s
+            """,
             (user_id, target_id)
         )
+
+        # Decrement like_count for posts or replies
+        cur.execute(f"UPDATE {table} SET like_count = GREATEST(like_count - 1, 0) WHERE {column} = %s", (target_id,))
+
         conn.commit()
         return jsonify({"message": "Like removed successfully"}), 200
 
@@ -1184,7 +1219,7 @@ def unlike(decoded_token):
     finally:
         cur.close()
         conn.close()
-        
+
 @app.route('/follows', methods=['POST'])
 @token_required
 def follow(decoded_token):
@@ -1458,7 +1493,7 @@ def create_reply(decoded_token):
     finally:
         cur.close()
         conn.close()
-        
+
 # Delete reply to post
 @app.route('/replies/<int:reply_id>', methods=['DELETE'])
 @token_required

@@ -47,7 +47,7 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
   };
 
   const handleClearSearch = () => {
-    setSearchQuery(''); // Clear the search query
+    setSearchQuery('');
   };
 
   return (

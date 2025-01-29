@@ -18,27 +18,21 @@ export default function Feed({ filters = {} }: FeedProps) {
   useEffect(() => {
     const fetchPosts = async () => {
       setIsLoading(true);
-      const response = await fetch(
-        API_URL +
-          '/posts?categories=' +
-          (filters.categories?.join(',') || '') +
-          '&users=' +
-          (filters.users || '') +
-          '&ageRange=' +
-          (filters.ageRange || '') +
-          '&sortBy=' +
-          (filters.sortBy || '') +
-          '&searchQuery=' +
-          (filters.searchQuery || '') +
-          '&posterId=' +
-          (filters.posterId?.toString() || '') +
-          '&page=' +
-          currentPage +
-          '&limit=5',
-        {
-          headers: token ? { Authorization: `Bearer ` + token } : {}
-        }
-      );
+      const queryParams = new URLSearchParams({
+        categories: filters.categories?.join(',') || '',
+        users: filters.users || '',
+        ageRange: filters.ageRange || '',
+        sortBy: filters.sortBy || '',
+        searchQuery: filters.searchQuery || '',
+        posterId: filters.posterId?.toString() || '',
+        page: currentPage.toString(),
+        limit: '5'
+      });
+
+      const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
       if (response.ok) {
         const data = await response.json();
         setPosts(data.posts);
@@ -46,6 +40,7 @@ export default function Feed({ filters = {} }: FeedProps) {
       }
       setIsLoading(false);
     };
+
     fetchPosts();
   }, [filters, token, currentPage]);
 

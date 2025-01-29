@@ -4,6 +4,7 @@ import { Avatar, Card, Text, Group, Image, Stack, Title, ActionIcon, Tooltip, Ba
 import { IconThumbUp, IconMessageCircle, IconTrash } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { useState } from 'react';
 import { PostProps } from '@/types/interfaces';
 
 const API_URL = 'http://127.0.0.1:5000';
@@ -14,15 +15,59 @@ const categoryIcons: { [key: string]: string } = {
   M: '🎵'
 };
 
-export default function Post({ post_id, poster_id, title, body, category, created_at, like_count, reply_count, image_url, username, profile_picture }: PostProps) {
+export default function Post({ post_id, poster_id, title, body, category, created_at, like_count, reply_count, image_url, username, profile_picture, liked }: PostProps) {
   const { user, token } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
+  const [isLiked, setIsLiked] = useState(liked);
+  const [likeCount, setLikeCount] = useState(like_count);
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!token) return;
+
+    const response = await fetch(API_URL + '/likes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token
+      },
+      body: JSON.stringify({ target_id: post_id, type: 'post' })
+    });
+
+    if (response.ok) {
+      setIsLiked(true);
+      setLikeCount(prev => prev + 1);
+    }
+  };
+
+  const handleUnlikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!token) return;
+
+    const response = await fetch(API_URL + '/likes', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token
+      },
+      body: JSON.stringify({ target_id: post_id, type: 'post' })
+    });
+
+    if (response.ok) {
+      setIsLiked(false);
+      setLikeCount(prev => Math.max(prev - 1, 0));
+    }
+  };
+
   const handleDeleteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!token) return;
+
     const confirmed = window.confirm('Are you sure you want to delete this post?');
-    if (!confirmed || !token) return;
+    if (!confirmed) return;
+
     const response = await fetch(API_URL + '/posts/' + post_id, {
       method: 'DELETE',
       headers: {
@@ -30,6 +75,7 @@ export default function Post({ post_id, poster_id, title, body, category, create
         Authorization: 'Bearer ' + token
       }
     });
+
     if (response.ok) {
       window.location.href = '/';
     }
@@ -92,25 +138,25 @@ export default function Post({ post_id, poster_id, title, body, category, create
       {image_url && <Image src={API_URL + image_url} alt={title} radius='md' style={{ marginBottom: '20px' }} />}
       <Group justify='space-between' align='center'>
         <Group>
-          <Tooltip label='Like' withArrow>
-            <ActionIcon variant='light' color='blue' radius='xl' onClick={e => e.stopPropagation()}>
+          <Tooltip label={isLiked ? 'Unlike' : 'Like'} withArrow>
+            <ActionIcon variant={isLiked ? 'filled' : 'light'} color={isLiked ? 'blue' : 'gray'} radius='xl' size='xl' onClick={isLiked ? handleUnlikeClick : handleLikeClick}>
               <IconThumbUp size={18} />
             </ActionIcon>
           </Tooltip>
           <Text size='sm' c='dimmed'>
-            {like_count}
+            {likeCount}
           </Text>
         </Group>
         {canDelete && (
           <Tooltip label='Delete Post' withArrow>
-            <ActionIcon variant='light' color='red' radius='xl' onClick={handleDeleteClick}>
+            <ActionIcon variant='light' color='red' radius='xl' size='xl' onClick={handleDeleteClick}>
               <IconTrash size={18} />
             </ActionIcon>
           </Tooltip>
         )}
         <Group>
           <Tooltip label='Comments' withArrow>
-            <ActionIcon variant='light' color='blue' radius='xl'>
+            <ActionIcon variant='light' color='gray' radius='xl' size='xl'>
               <IconMessageCircle size={18} />
             </ActionIcon>
           </Tooltip>

@@ -19,7 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const decoded = jwt.decode(token) as { user_id: any; is_admin: boolean };
         setUser({
-          user_id: Number(decoded.user_id),
+          user_id: decoded.user_id,
           is_admin: decoded.is_admin
         });
       } catch {

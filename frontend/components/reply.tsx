@@ -5,12 +5,54 @@ import { IconThumbUp, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { ReplyProps } from '@/types/interfaces';
 import { useAuth } from '@/context/auth-context';
+import { useState } from 'react';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function Reply({ reply_id, replier_id, body, username, profile_picture, like_count, created_at, image_url }: ReplyProps) {
+export default function Reply({ reply_id, replier_id, body, username, profile_picture, like_count, created_at, image_url, liked }: ReplyProps) {
   const { user, token } = useAuth();
   const router = useRouter();
+
+  const [isLiked, setIsLiked] = useState(liked);
+  const [likeCount, setLikeCount] = useState(like_count);
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!token) return;
+
+    const response = await fetch(`${API_URL}/likes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ target_id: reply_id, type: 'reply' })
+    });
+
+    if (response.ok) {
+      setIsLiked(true);
+      setLikeCount(prev => prev + 1);
+    }
+  };
+
+  const handleUnlikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!token) return;
+
+    const response = await fetch(`${API_URL}/likes`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ target_id: reply_id, type: 'reply' })
+    });
+
+    if (response.ok) {
+      setIsLiked(false);
+      setLikeCount(prev => Math.max(prev - 1, 0));
+    }
+  };
 
   const handleDeleteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,25 +111,29 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
           <Text size='sm' c='dimmed'>
             {body}
           </Text>
-          {image_url && (
-            <Image src={API_URL + image_url} alt='Reply Image' radius='md' style={{ marginTop: '10px' }} />
-          )}
+          {image_url && <Image src={API_URL + image_url} alt='Reply Image' radius='md' style={{ marginTop: '10px' }} />}
         </Stack>
       </Group>
       <Group justify='space-between' align='center' style={{ marginTop: '20px' }}>
         <Group>
-          <Tooltip label='Like' withArrow>
-            <ActionIcon variant='light' color='blue' radius='xl' onClick={e => e.stopPropagation()}>
+          <Tooltip label={isLiked ? 'Unlike' : 'Like'} withArrow>
+            <ActionIcon
+              variant={isLiked ? 'filled' : 'light'}
+              color={isLiked ? 'blue' : 'gray'}
+              radius='xl'
+              size='xl'
+              onClick={isLiked ? handleUnlikeClick : handleLikeClick}
+            >
               <IconThumbUp size={18} />
             </ActionIcon>
           </Tooltip>
           <Text size='sm' c='dimmed'>
-            {like_count}
+            {likeCount}
           </Text>
         </Group>
         {canDelete && (
           <Tooltip label='Delete Reply' withArrow>
-            <ActionIcon variant='light' color='red' radius='xl' onClick={handleDeleteClick}>
+            <ActionIcon variant='light' color='red' radius='xl' size='xl' onClick={handleDeleteClick}>
               <IconTrash size={18} />
             </ActionIcon>
           </Tooltip>

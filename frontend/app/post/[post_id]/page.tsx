@@ -15,18 +15,18 @@ const API_URL = 'http://127.0.0.1:5000';
 
 export default function PostPage() {
   const post_id = Number(useParams().post_id);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [post, setPost] = useState<PostData | null>(null);
   const [replies, setReplies] = useState<ReplyData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPostAndReplies = async () => {
-      const response = await fetch(API_URL + '/posts/' + post_id, {
-        headers: {
-          Authorization: 'Bearer ' + token
-        }
+      const queryParams = user?.user_id ? `?userId=${user.user_id}` : '';
+      const response = await fetch(`${API_URL}/posts/${post_id}${queryParams}`, {
+        headers: token ? { Authorization: 'Bearer ' + token } : {}
       });
+
       if (response.ok) {
         const data = await response.json();
         setPost(data.post);
@@ -34,8 +34,11 @@ export default function PostPage() {
       }
       setLoading(false);
     };
-    fetchPostAndReplies();
-  }, [post_id, token]);
+
+    if (!token || (token && user?.user_id !== undefined)) {
+      fetchPostAndReplies();
+    }
+  }, [post_id, token, user?.user_id]);
 
   if (loading) {
     return (
