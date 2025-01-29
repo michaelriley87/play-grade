@@ -1,12 +1,14 @@
+export interface Filters {
+  categories: string[];
+  users: string;
+  ageRange: string;
+  sortBy: string;
+  searchQuery: string;
+}
+
 export interface ControlsPanelProps {
-  filters: {
-    categories: string[];
-    users: string;
-    ageRange: string;
-    sortBy: string;
-    searchQuery: string;
-  };
-  onUpdateFilters: (newFilters: { categories: string[]; users: string; ageRange: string; sortBy: string; searchQuery: string }) => void;
+  filters: Filters;
+  onUpdateFilters: (newFilters: Filters) => void;
 }
 
 export interface PostData {
@@ -52,25 +54,12 @@ export interface CreatePostProps {
 }
 
 export interface FeedProps {
-  filters?: {
-    categories?: string[];
-    users?: string;
-    ageRange?: string;
-    sortBy?: string;
-    searchQuery?: string;
-    posterId?: number;
-  };
+  filters?: Filters & { posterId?: number };
 }
 
 export interface FiltersProps {
-  currentFilters: {
-    categories: string[];
-    users: string;
-    ageRange: string;
-    sortBy: string;
-    searchQuery: string;
-  };
-  onUpdateFilters: (filters: FiltersProps['currentFilters']) => void;
+  currentFilters: Filters;
+  onUpdateFilters: (filters: Filters) => void;
   onClose: () => void;
 }
 

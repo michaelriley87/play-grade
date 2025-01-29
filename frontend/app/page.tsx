@@ -1,21 +1,34 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Container, Stack } from '@mantine/core';
-import { useState } from 'react';
 import PostFeed from '@/components/post-feed';
 import Header from '@/components/header';
 import ControlPanel from '@/components/control-panel';
+import { Filters } from '@/types/interfaces';
 
 export default function HomePage() {
-  const [filters, setFilters] = useState({
+  const defaultFilters: Filters = {
     categories: ['🎮 Games', '🎥 Film/TV', '🎵 Music'],
     users: 'All Users',
     ageRange: 'All',
     sortBy: 'Newest',
     searchQuery: ''
+  };
+
+  const [filters, setFilters] = useState<Filters>(() => {
+    if (typeof window !== 'undefined') {
+      const storedFilters = localStorage.getItem('filters');
+      return storedFilters ? JSON.parse(storedFilters) : defaultFilters;
+    }
+    return defaultFilters;
   });
 
-  const handleUpdateFilters = (newFilters: typeof filters) => {
+  useEffect(() => {
+    localStorage.setItem('filters', JSON.stringify(filters));
+  }, [filters]);
+
+  const handleUpdateFilters = (newFilters: Filters) => {
     setFilters(newFilters);
   };
 
