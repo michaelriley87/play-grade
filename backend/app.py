@@ -974,8 +974,8 @@ def get_posts(decoded_token):
         sort_by = request.args.get('sortBy', 'Newest')
         sort_columns = {
             'Newest': 'posts.created_at DESC',
-            'Most Liked': 'posts.like_count DESC',
-            'Most Comments': 'posts.reply_count DESC'
+            'Most Liked': 'posts.like_count DESC, posts.created_at DESC',
+            'Most Comments': 'posts.reply_count DESC, posts.created_at DESC'
         }
         query += f" ORDER BY {sort_columns.get(sort_by, 'posts.created_at DESC')}"
 
@@ -1220,6 +1220,7 @@ def unlike(decoded_token):
         cur.close()
         conn.close()
 
+# Follow a user account
 @app.route('/follows', methods=['POST'])
 @token_required
 def follow(decoded_token):
@@ -1301,6 +1302,68 @@ def follow(decoded_token):
         cur.close()
         conn.close()
 
+# Check if the logged-in user is following another user
+@app.route('/follows/status/<int:user_id>', methods=['GET'])
+@token_required
+def follow_status(decoded_token, user_id):
+    """
+    Check if the logged-in user is following another user (Requires Authorization).
+    ---
+    tags:
+      - Follows
+    description:
+        Returns whether the logged-in user is following the specified user.
+        A valid Bearer token must be included in the Authorization header.
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        description: ID of the user to check follow status for.
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Follow status retrieved successfully.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_following:
+                  type: boolean
+                  description: Whether the logged-in user follows the target user.
+                  example: true
+      400:
+        description: Invalid input.
+      401:
+        description: Authorization token is missing or invalid.
+      500:
+        description: Server error.
+    security:
+      - Bearer: []
+    """
+    follower_id = decoded_token['user_id']
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute(
+            "SELECT 1 FROM follows WHERE follower_id = %s AND followee_id = %s",
+            (follower_id, user_id)
+        )
+        is_following = cur.fetchone() is not None
+
+        return jsonify({"is_following": is_following}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cur.close()
+        conn.close()
+
+# Unfollow a user account
 @app.route('/follows', methods=['DELETE'])
 @token_required
 def unfollow(decoded_token):
