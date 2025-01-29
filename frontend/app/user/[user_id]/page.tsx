@@ -61,7 +61,7 @@ export default function UserPage() {
         <Header />
         <BackButton />
         <User {...user} />
-        <PostFeed filters={{ posterId: user_id }} />
+        <PostFeed posterId={user_id} />
       </Stack>
     </Container>
   );

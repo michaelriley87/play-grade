@@ -54,7 +54,8 @@ export interface CreatePostProps {
 }
 
 export interface FeedProps {
-  filters?: Filters & { posterId?: number };
+  filters?: Filters;
+  posterId?: number;
 }
 
 export interface FiltersProps {

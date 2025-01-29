@@ -24,7 +24,7 @@ export default function User({ user_id }: UserProps) {
     };
 
     const fetchFollowStatus = async () => {
-      if (!token || user?.user_id === user_id) return; // Skip if it's their own profile
+      if (!token || user?.user_id === user_id) return;
 
       const response = await fetch(`${API_URL}/follows/status/${user_id}`, {
         headers: { Authorization: `Bearer ${token}` }

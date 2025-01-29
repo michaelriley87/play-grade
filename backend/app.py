@@ -810,14 +810,10 @@ def get_post_with_replies(decoded_token, post_id):
 @token_optional
 def get_posts(decoded_token):
     """
-    Retrieve posts with optional filters and pagination.
+    Retrieve posts with optional filters, sorting, and pagination
     ---
     tags:
       - Posts
-    description: |
-      Retrieves posts based on filters such as categories, users, age range, poster ID, and search queries. 
-      Posts can be sorted by newest, most liked, or most commented. Pagination is supported using `page` and `limit`.
-      If the user is authenticated, the response includes whether the user has liked each post.
     parameters:
       - in: header
         name: Authorization
@@ -826,180 +822,177 @@ def get_posts(decoded_token):
         schema:
           type: string
           example: "Bearer your_token_here"
-      - name: categories
-        in: query
+      - in: query
+        name: posterId
+        required: false
+        description: Filter posts by a specific user's ID.
+        schema:
+          type: integer
+          example: 123
+      - in: query
+        name: categories
         required: false
         description: Filter posts by categories.
         schema:
           type: array
           items:
             type: string
-          example: ["🎮 Games", "🎥 Film/TV", "🎵 Music"]
-      - name: users
-        in: query
+            enum: ["🎮 Games", "🎥 Film/TV", "🎵 Music"]
+          example: ["🎮 Games", "🎥 Film/TV"]
+      - in: query
+        name: ageRange
         required: false
-        description: Filter by user type (All Users or Followed Users).
-        schema:
-          type: string
-          enum: ["All Users", "Followed Users"]
-          example: "Followed Users"
-      - name: ageRange
-        in: query
-        required: false
-        description: Filter posts by age range.
+        description: Filter posts by time period.
         schema:
           type: string
           enum: ["Today", "Week", "Month", "Year", "All"]
           example: "Week"
-      - name: sortBy
-        in: query
-        required: false
-        description: Sort posts by criteria.
-        schema:
-          type: string
-          enum: ["Newest", "Most Liked", "Most Comments"]
-          example: "Most Liked"
-      - name: searchQuery
-        in: query
+      - in: query
+        name: searchQuery
         required: false
         description: Search posts by title or body.
         schema:
           type: string
-          example: "example search term"
-      - name: posterId
-        in: query
+          example: "arcade games"
+      - in: query
+        name: users
         required: false
-        description: Filter posts by poster ID.
+        description: Filter by All Users or Followed Users.
         schema:
-          type: integer
-          example: 123
-      - name: page
-        in: query
+          type: string
+          enum: ["All Users", "Followed Users"]
+          example: "Followed Users"
+      - in: query
+        name: sortBy
         required: false
-        description: The page number for pagination (default is 1).
+        description: Sort posts by a specific criterion.
+        schema:
+          type: string
+          enum: ["Newest", "Most Liked", "Most Comments"]
+          example: "Most Liked"
+      - in: query
+        name: page
+        required: false
+        description: Page number for pagination.
         schema:
           type: integer
           example: 1
-      - name: limit
-        in: query
+      - in: query
+        name: limit
         required: false
-        description: The number of posts per page (default is 10).
+        description: Number of posts per page.
         schema:
           type: integer
           example: 10
     responses:
       200:
         description: Posts retrieved successfully.
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                posts:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      post_id:
-                        type: integer
-                      poster_id:
-                        type: integer
-                      title:
-                        type: string
-                      category:
-                        type: string
-                      body:
-                        type: string
-                      image_url:
-                        type: string
-                      like_count:
-                        type: integer
-                      reply_count:
-                        type: integer
-                      created_at:
-                        type: string
-                        format: date-time
-                      username:
-                        type: string
-                      profile_picture:
-                        type: string
-                      liked:
-                        type: boolean
-                        description: Whether the authenticated user has liked this post.
-                totalPages:
-                  type: integer
-                  description: Total number of pages available.
-                currentPage:
-                  type: integer
-                  description: The current page number.
       400:
-        description: Invalid input.
+        description: Bad request (e.g., invalid filter values).
       500:
         description: Server error.
     """
     try:
-        # Get user_id from optional token
         user_id = decoded_token.get('user_id') if decoded_token else None
-
-        # Pagination
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 10))
         offset = (page - 1) * limit
 
-        # Base query for posts
+        sort_by = request.args.get('sortBy', 'Newest')
+        sort_options = {
+            "Newest": "posts.created_at DESC",
+            "Most Liked": "posts.like_count DESC, posts.created_at DESC",
+            "Most Comments": "posts.reply_count DESC, posts.created_at DESC"
+        }
+        order_by = sort_options.get(sort_by, "posts.created_at DESC")
+
+        # Base query
         query = """
-            SELECT 
-                posts.post_id, 
-                posts.poster_id, 
-                posts.title, 
-                posts.category, 
-                posts.body, 
-                posts.image_url, 
-                posts.like_count, 
-                posts.reply_count, 
-                posts.created_at,
-                users.username, 
-                users.profile_picture,
-                CASE 
-                    WHEN likes.user_id IS NOT NULL THEN TRUE 
-                    ELSE FALSE 
-                END AS liked
+            SELECT posts.post_id, posts.poster_id, posts.title, posts.category, posts.body, posts.image_url,
+                   posts.like_count, posts.reply_count, posts.created_at, users.username, users.profile_picture,
+                   CASE WHEN likes.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS liked
             FROM posts
             JOIN users ON posts.poster_id = users.user_id
             LEFT JOIN likes ON posts.post_id = likes.post_id AND likes.user_id = %s
             WHERE 1=1
         """
+        count_query = "SELECT COUNT(*) FROM posts WHERE 1=1"
+        params = [user_id if user_id else -1]  # Placeholder for likes check
+        count_params = []  # Separate list for count query
 
-        # Sorting
-        sort_by = request.args.get('sortBy', 'Newest')
-        sort_columns = {
-            'Newest': 'posts.created_at DESC',
-            'Most Liked': 'posts.like_count DESC, posts.created_at DESC',
-            'Most Comments': 'posts.reply_count DESC, posts.created_at DESC'
+        # Filter by posterId (User Page)
+        poster_id = request.args.get('posterId')
+        if poster_id:
+            query += " AND posts.poster_id = %s"
+            count_query += " AND posts.poster_id = %s"
+            params.append(int(poster_id))
+            count_params.append(int(poster_id))
+
+        # Filter by categories
+        category_map = {"🎮 Games": "G", "🎥 Film/TV": "F", "🎵 Music": "M"}
+        requested_categories = request.args.getlist('categories')
+        stored_categories = [category_map[c] for c in requested_categories if c in category_map]
+
+        if stored_categories:
+            query += " AND posts.category = ANY(%s)"
+            count_query += " AND posts.category = ANY(%s)"
+            params.append(stored_categories)
+            count_params.append(stored_categories)
+
+        # Filter by age range
+        age_range = request.args.get('ageRange', 'All')
+        age_filters = {
+            "Today": "posts.created_at >= NOW() - INTERVAL '1 day'",
+            "Week": "posts.created_at >= NOW() - INTERVAL '7 days'",
+            "Month": "posts.created_at >= NOW() - INTERVAL '30 days'",
+            "Year": "posts.created_at >= NOW() - INTERVAL '365 days'"
         }
-        query += f" ORDER BY {sort_columns.get(sort_by, 'posts.created_at DESC')}"
+        if age_range in age_filters:
+            query += f" AND {age_filters[age_range]}"
+            count_query += f" AND {age_filters[age_range]}"
 
-        # Add pagination
-        query += " LIMIT %s OFFSET %s"
-        params = [user_id if user_id else -1, limit, offset]
+        # Filter by search query (title OR body)
+        search_query = request.args.get('searchQuery', '').strip()
+        if search_query:
+            query += " AND (posts.title ILIKE %s OR posts.body ILIKE %s)"
+            count_query += " AND (posts.title ILIKE %s OR posts.body ILIKE %s)"
+            params.extend([f"%{search_query}%", f"%{search_query}%"])
+            count_params.extend([f"%{search_query}%", f"%{search_query}%"])
 
-        # Execute the query
+        # Filter by Followed Users
+        users_filter = request.args.get('users', 'All Users')
+        if users_filter == "Followed Users" and user_id:
+            query += """
+                AND posts.poster_id IN (
+                    SELECT followee_id FROM follows WHERE follower_id = %s
+                )
+            """
+            count_query += """
+                AND posts.poster_id IN (
+                    SELECT followee_id FROM follows WHERE follower_id = %s
+                )
+            """
+            params.append(user_id)
+            count_params.append(user_id)
+
+        # Apply sorting and pagination
+        query += f" ORDER BY {order_by} LIMIT %s OFFSET %s"
+        params.extend([limit, offset])
+
+        # Execute queries
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Get posts
         cur.execute(query, tuple(params))
         posts = cur.fetchall()
 
-        # Fetch total post count
-        count_query = "SELECT COUNT(*) FROM posts"
-        cur.execute(count_query)
+        # Get total count
+        cur.execute(count_query, tuple(count_params))
         total_posts = cur.fetchone()["count"]
-        total_pages = (total_posts + limit - 1) // limit
+        total_pages = (total_posts + limit - 1) // limit  # Correct page calculation
 
-        return jsonify({
-            "posts": posts,
-            "totalPages": total_pages,
-            "currentPage": page
-        }), 200
+        return jsonify({"posts": posts, "totalPages": total_pages, "currentPage": page}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

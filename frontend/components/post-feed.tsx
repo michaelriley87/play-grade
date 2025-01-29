@@ -8,7 +8,7 @@ import Post from './post';
 
 const API_URL = 'http://127.0.0.1:5000';
 
-export default function Feed({ filters = {} }: FeedProps) {
+export default function Feed({ filters, posterId }: FeedProps) {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -18,16 +18,22 @@ export default function Feed({ filters = {} }: FeedProps) {
   useEffect(() => {
     const fetchPosts = async () => {
       setIsLoading(true);
+
+      // Construct query parameters
       const queryParams = new URLSearchParams({
-        categories: filters.categories?.join(',') || '',
-        users: filters.users || '',
-        ageRange: filters.ageRange || '',
-        sortBy: filters.sortBy || '',
-        searchQuery: filters.searchQuery || '',
-        posterId: filters.posterId?.toString() || '',
         page: currentPage.toString(),
         limit: '5'
       });
+
+      if (posterId) {
+        queryParams.append('posterId', posterId.toString());
+      } else if (filters) {
+        queryParams.append('categories', filters.categories?.join(',') || '');
+        queryParams.append('users', filters.users || '');
+        queryParams.append('ageRange', filters.ageRange || '');
+        queryParams.append('sortBy', filters.sortBy || '');
+        queryParams.append('searchQuery', filters.searchQuery || '');
+      }
 
       const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -42,11 +48,11 @@ export default function Feed({ filters = {} }: FeedProps) {
     };
 
     fetchPosts();
-  }, [filters, token, currentPage]);
+  }, [filters, posterId, token, currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
+  }, [filters, posterId]);
 
   if (isLoading) {
     return (
