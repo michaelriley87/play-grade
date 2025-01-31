@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Stack, Pagination } from '@mantine/core';
+import { Stack, Pagination, Container, Loader, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { PostData, FeedProps } from '@/types/interfaces';
@@ -9,16 +9,14 @@ import { API_URL } from '@/config';
 
 export default function Feed({ filters, posterId }: FeedProps) {
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { token } = useAuth();
 
   useEffect(() => {
     const fetchPosts = async () => {
-      setIsLoading(true);
-
-      // Construct query parameters
+      setLoading(true);
       const queryParams = new URLSearchParams({
         page: currentPage.toString(),
         limit: '5'
@@ -43,7 +41,7 @@ export default function Feed({ filters, posterId }: FeedProps) {
         setPosts(data.posts);
         setTotalPages(data.totalPages);
       }
-      setIsLoading(false);
+      setLoading(false);
     };
 
     fetchPosts();
@@ -53,19 +51,27 @@ export default function Feed({ filters, posterId }: FeedProps) {
     setCurrentPage(1);
   }, [filters, posterId]);
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <Card shadow='sm' padding='lg' radius='md' withBorder>
-        Loading...
-      </Card>
+      <Container
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <Loader size='lg' />
+      </Container>
     );
   }
 
   if (posts.length === 0) {
     return (
-      <Card shadow='sm' padding='lg' radius='md' withBorder>
-        No Posts found.
-      </Card>
+      <Container size='sm' style={{ paddingTop: '20px' }}>
+        <Stack align='center'>
+          <Text>No Posts found.</Text>
+        </Stack>
+      </Container>
     );
   }
 

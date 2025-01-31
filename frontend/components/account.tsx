@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, Button, Card, Stack, TextInput, PasswordInput, Title, Divider, Flex, Anchor, Transition, Text, Box } from '@mantine/core';
+import { Avatar, Button, Card, Container, Stack, TextInput, PasswordInput, Title, Divider, Flex, Anchor, Transition, Text, Box, Loader } from '@mantine/core';
 import { IconEdit, IconTrash, IconLogout } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -10,7 +10,7 @@ import { API_URL } from '@/config';
 
 export default function Account({ onClose }: { onClose: () => void }) {
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [openForm, setOpenForm] = useState<'displayPicture' | 'username' | 'password' | null>(null);
   const [newDisplayPicture, setNewDisplayPicture] = useState('');
   const [newUsername, setNewUsername] = useState('');
@@ -21,13 +21,13 @@ export default function Account({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user || !token) {
-        setIsLoading(false);
+        setLoading(false);
         return;
       }
       const response = await fetch(API_URL + '/users/' + user.user_id, { headers: { Authorization: 'Bearer ' + token } });
       const data = await response.json();
       if (response.ok) setUserData(data);
-      setIsLoading(false);
+      setLoading(false);
     };
     fetchUserData();
   }, [user, token]);
@@ -57,8 +57,29 @@ export default function Account({ onClose }: { onClose: () => void }) {
     setOpenForm(prev => (prev === form ? null : form));
   };
 
-  if (isLoading) return <Text>Loading...</Text>;
-  if (!userData) return <Text>Failed to load user data.</Text>;
+  if (loading) {
+    return (
+      <Container
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <Loader size='lg' />
+      </Container>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <Container size='sm' style={{ paddingTop: '20px' }}>
+        <Stack align='center'>
+          <Text>Failed to load account data.</Text>
+        </Stack>
+      </Container>
+    );
+  }
 
   return (
     <Card withBorder style={{ width: '100%' }}>

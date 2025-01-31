@@ -41,26 +41,23 @@ export default function PostPage() {
 
   if (loading) {
     return (
-      <Container
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh'
-        }}
-      >
-        <Loader size='lg' />
+      <Container style={{ width: '100vw', display: 'flex', justifyContent: 'center' }}>
+        <Stack align='center' style={{ width: '750px', marginBottom: '20px' }}>
+          <Header />
+          <BackButton />
+          <Loader size='lg' />
+        </Stack>
       </Container>
     );
   }
 
   if (!post) {
     return (
-      <Container size='sm' style={{ paddingTop: '20px' }}>
-        <Header />
-        <Stack align='center'>
-          <Text>Post not found.</Text>
+      <Container style={{ width: '100vw', display: 'flex', justifyContent: 'center' }}>
+        <Stack align='center' style={{ width: '750px', marginBottom: '20px' }}>
+          <Header />
           <BackButton />
+          <Text>Post not found.</Text>
         </Stack>
       </Container>
     );

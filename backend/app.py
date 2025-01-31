@@ -329,53 +329,8 @@ def login():
 
 # Get user details
 @app.route('/users/<int:user_id>', methods=['GET'])
-def get_user(user_id):
-    """
-    Get user details
-    ---
-    tags:
-      - Users
-    description: 
-        This endpoint retrieves user details (username and optional profile_picture) based on user_id.
-    parameters:
-      - name: user_id
-        in: path
-        required: true
-        description: The ID of the user to retrieve
-        type: integer
-        example: 1
-    responses:
-      200:
-        description: User details retrieved successfully
-        schema:
-          type: object
-          properties:
-            user_id:
-              type: integer
-              example: 1
-            username:
-              type: string
-              example: testuser
-            profile_picture:
-              type: string
-              example: https://example.com/path/to/profile_picture.jpg
-      404:
-        description: User not found
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              example: User not found
-      500:
-        description: Server error
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
-              example: Internal server error
-    """
+@token_optional  # Allows logged-in users but supports guests
+def get_user(current_user, user_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -387,10 +342,22 @@ def get_user(user_id):
         if not user:
             return jsonify({"error": "User not found"}), 404
 
+        # Default value for is_following
+        is_following = False
+
+        # If authenticated, check if following
+        if current_user:
+            cur.execute(
+                "SELECT 1 FROM follows WHERE follower_id = %s AND followee_id = %s",
+                (current_user['user_id'], user_id)
+            )
+            is_following = cur.fetchone() is not None
+
         return jsonify({
             "user_id": user['user_id'],
             "username": user['username'],
-            "profile_picture": user.get('profile_picture', None)
+            "profile_picture": user.get('profile_picture', None),
+            "is_following": is_following
         }), 200
 
     except Exception as e:
@@ -399,7 +366,7 @@ def get_user(user_id):
     finally:
         cur.close()
         conn.close()
-
+        
 # Delete user account
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 @token_required
