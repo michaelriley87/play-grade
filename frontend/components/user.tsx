@@ -4,8 +4,7 @@ import { Avatar, Button, Card, Flex, Title } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { UserProps, UserData } from '@/types/interfaces';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function User({ user_id }: UserProps) {
   const { user, token } = useAuth();
@@ -15,7 +14,7 @@ export default function User({ user_id }: UserProps) {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const response = await fetch(`${API_URL}/users/${user_id}`);
+      const response = await fetch(API_URL + '/users/' + user_id);
       if (response.ok) {
         const data = await response.json();
         setUserData(data);
@@ -26,8 +25,8 @@ export default function User({ user_id }: UserProps) {
     const fetchFollowStatus = async () => {
       if (!token || user?.user_id === user_id) return;
 
-      const response = await fetch(`${API_URL}/follows/status/${user_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await fetch(API_URL + '/follows/status/' + user_id, {
+        headers: { Authorization: `Bearer ` + token }
       });
 
       if (response.ok) {
@@ -44,13 +43,13 @@ export default function User({ user_id }: UserProps) {
     if (!token) return;
 
     const method = isFollowing ? 'DELETE' : 'POST';
-    const response = await fetch(`${API_URL}/follows`, {
+    const response = await fetch(API_URL + `/follows`, {
       method,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ` + token
       },
-      body: JSON.stringify({ followee_id: user_id }),
+      body: JSON.stringify({ followee_id: user_id })
     });
 
     if (response.ok) {

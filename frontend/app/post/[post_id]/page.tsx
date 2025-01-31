@@ -10,8 +10,7 @@ import ReplyFeed from '@/components/reply-feed';
 import CreateReply from '@/components/create-reply';
 import { useAuth } from '@/context/auth-context';
 import { PostData, ReplyData } from '@/types/interfaces';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function PostPage() {
   const post_id = Number(useParams().post_id);
@@ -22,8 +21,8 @@ export default function PostPage() {
 
   useEffect(() => {
     const fetchPostAndReplies = async () => {
-      const queryParams = user?.user_id ? `?userId=${user.user_id}` : '';
-      const response = await fetch(`${API_URL}/posts/${post_id}${queryParams}`, {
+      const queryParams = user?.user_id ? '?userId=' + user.user_id : '';
+      const response = await fetch(API_URL + '/posts/' + post_id + queryParams, {
         headers: token ? { Authorization: 'Bearer ' + token } : {}
       });
 

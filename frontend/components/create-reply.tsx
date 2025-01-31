@@ -7,8 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
 import 'react-toastify/dist/ReactToastify.css';
 import { CreateReplyProps } from '@/types/interfaces';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function CreateReply({ postId }: CreateReplyProps) {
   const [body, setBody] = useState('');

@@ -5,8 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { PostData, FeedProps } from '@/types/interfaces';
 import Post from './post';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function Feed({ filters, posterId }: FeedProps) {
   const [posts, setPosts] = useState<PostData[]>([]);
@@ -35,8 +34,8 @@ export default function Feed({ filters, posterId }: FeedProps) {
         queryParams.append('searchQuery', filters.searchQuery || '');
       }
 
-      const response = await fetch(`${API_URL}/posts?${queryParams.toString()}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await fetch(API_URL + '/posts?' + queryParams.toString(), {
+        headers: token ? { Authorization: `Bearer ` + token } : {}
       });
 
       if (response.ok) {

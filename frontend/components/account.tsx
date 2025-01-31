@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { UserData } from '@/types/interfaces';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function Account({ onClose }: { onClose: () => void }) {
   const [userData, setUserData] = useState<UserData | null>(null);

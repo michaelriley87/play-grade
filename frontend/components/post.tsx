@@ -6,8 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useState } from 'react';
 import { PostProps } from '@/types/interfaces';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 const categoryIcons: { [key: string]: string } = {
   G: '🎮',
@@ -22,7 +21,6 @@ export default function Post({ post_id, poster_id, title, body, category, create
 
   const [isLiked, setIsLiked] = useState(liked);
   const [likeCount, setLikeCount] = useState(like_count);
-
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!token) return;
@@ -125,9 +123,11 @@ export default function Post({ post_id, poster_id, title, body, category, create
             </Text>
           </Stack>
         </Group>
-        <Badge color='blue' size='lg' radius='sm'>
-          {categoryIcons[category] || '❓'}
-        </Badge>
+        <Tooltip label={category === 'G' ? 'Games' : category === 'F' ? 'Film/TV' : category === 'M' ? 'Music' : 'Unknown'} withArrow>
+          <Badge color='blue' size='lg' radius='sm'>
+            {categoryIcons[category] || '❓'}
+          </Badge>
+        </Tooltip>
       </Group>
       <Text fw={600} size='lg' style={{ margin: '10px' }}>
         {title}

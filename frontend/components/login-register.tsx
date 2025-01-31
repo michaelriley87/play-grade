@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function LoginRegister() {
   const [activeTab, setActiveTab] = useState<string>('login');

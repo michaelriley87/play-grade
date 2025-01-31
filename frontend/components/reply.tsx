@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ReplyProps } from '@/types/interfaces';
 import { useAuth } from '@/context/auth-context';
 import { useState } from 'react';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function Reply({ reply_id, replier_id, body, username, profile_picture, like_count, created_at, image_url, liked }: ReplyProps) {
   const { user, token } = useAuth();
@@ -20,11 +19,11 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
     e.stopPropagation();
     if (!token) return;
 
-    const response = await fetch(`${API_URL}/likes`, {
+    const response = await fetch(API_URL + '/likes', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ` + token
       },
       body: JSON.stringify({ target_id: reply_id, type: 'reply' })
     });
@@ -39,11 +38,11 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
     e.stopPropagation();
     if (!token) return;
 
-    const response = await fetch(`${API_URL}/likes`, {
+    const response = await fetch(API_URL + '/likes', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ` + token
       },
       body: JSON.stringify({ target_id: reply_id, type: 'reply' })
     });
@@ -59,11 +58,11 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
     const confirmed = window.confirm('Are you sure you want to delete this reply?');
     if (!confirmed || !token) return;
 
-    const response = await fetch(`${API_URL}/replies/${reply_id}`, {
+    const response = await fetch(API_URL + '/replies/' + reply_id, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ` + token
       }
     });
 
@@ -117,13 +116,7 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
       <Group justify='space-between' align='center' style={{ marginTop: '20px' }}>
         <Group>
           <Tooltip label={isLiked ? 'Unlike' : 'Like'} withArrow>
-            <ActionIcon
-              variant={isLiked ? 'filled' : 'light'}
-              color={isLiked ? 'blue' : 'gray'}
-              radius='xl'
-              size='xl'
-              onClick={isLiked ? handleUnlikeClick : handleLikeClick}
-            >
+            <ActionIcon variant={isLiked ? 'filled' : 'light'} color={isLiked ? 'blue' : 'gray'} radius='xl' size='xl' onClick={isLiked ? handleUnlikeClick : handleLikeClick}>
               <IconThumbUp size={18} />
             </ActionIcon>
           </Tooltip>

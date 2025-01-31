@@ -8,8 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { useAuth } from '@/context/auth-context';
 import 'react-toastify/dist/ReactToastify.css';
 import { CreatePostProps } from '@/types/interfaces';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function CreatePost({ onClose }: CreatePostProps) {
   const [title, setTitle] = useState('');

@@ -8,8 +8,7 @@ import PostFeed from '@/components/post-feed';
 import Header from '@/components/header';
 import User from '@/components/user';
 import { UserData } from '@/types/interfaces';
-
-const API_URL = 'http://127.0.0.1:5000';
+import { API_URL } from '@/config';
 
 export default function UserPage() {
   const user_id = Number(useParams().user_id);
