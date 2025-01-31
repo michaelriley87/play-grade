@@ -88,11 +88,6 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         setImage(null);
         setImagePreview(null);
         onClose();
-      } else if (response.status === 401) {
-        toast.error('Session expired. Please log in again.');
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
       } else {
         toast.error(data.error || 'An error occurred');
       }

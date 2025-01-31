@@ -59,8 +59,6 @@ def token_required(f):
             token = token.replace("Bearer ", "") if token.startswith("Bearer ") else token
             decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
             return f(decoded, *args, **kwargs)
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token has expired"}), 401
         except jwt.InvalidTokenError:
             return jsonify({"error": "Invalid token"}), 401
     return decorated
@@ -76,8 +74,6 @@ def token_optional(f):
             token = token.replace("Bearer ", "") if token.startswith("Bearer ") else token
             decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
             return f(decoded, *args, **kwargs)
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token has expired"}), 401
         except jwt.InvalidTokenError:
             return jsonify({"error": "Invalid token"}), 401
     return decorated
@@ -311,8 +307,7 @@ def login():
         token = jwt.encode(
             {
                 "user_id": user['user_id'],
-                "is_admin": user['is_admin'],
-                "exp": datetime.now(timezone.utc) + timedelta(days=30)
+                "is_admin": user['is_admin']
             },
             app.config['SECRET_KEY'],
             algorithm="HS256"
@@ -1254,67 +1249,6 @@ def follow(decoded_token):
         )
         conn.commit()
         return jsonify({"message": "Follow created successfully"}), 201
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    finally:
-        cur.close()
-        conn.close()
-
-# Check if the logged-in user is following another user
-@app.route('/follows/status/<int:user_id>', methods=['GET'])
-@token_required
-def follow_status(decoded_token, user_id):
-    """
-    Check if the logged-in user is following another user (Requires Authorization).
-    ---
-    tags:
-      - Follows
-    description:
-        Returns whether the logged-in user is following the specified user.
-        A valid Bearer token must be included in the Authorization header.
-    parameters:
-      - name: user_id
-        in: path
-        required: true
-        description: ID of the user to check follow status for.
-        schema:
-          type: integer
-    responses:
-      200:
-        description: Follow status retrieved successfully.
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                is_following:
-                  type: boolean
-                  description: Whether the logged-in user follows the target user.
-                  example: true
-      400:
-        description: Invalid input.
-      401:
-        description: Authorization token is missing or invalid.
-      500:
-        description: Server error.
-    security:
-      - Bearer: []
-    """
-    follower_id = decoded_token['user_id']
-
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-
-        cur.execute(
-            "SELECT 1 FROM follows WHERE follower_id = %s AND followee_id = %s",
-            (follower_id, user_id)
-        )
-        is_following = cur.fetchone() is not None
-
-        return jsonify({"is_following": is_following}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
