@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '@/styles/components.module.css';
 import { Stack, Pagination, Container, Loader, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
@@ -21,7 +22,6 @@ export default function Feed({ filters, posterId }: FeedProps) {
         page: currentPage.toString(),
         limit: '5'
       });
-
       if (posterId) {
         queryParams.append('posterId', posterId.toString());
       } else if (filters) {
@@ -31,11 +31,9 @@ export default function Feed({ filters, posterId }: FeedProps) {
         queryParams.append('sortBy', filters.sortBy || '');
         queryParams.append('searchQuery', filters.searchQuery || '');
       }
-
       const response = await fetch(API_URL + '/posts?' + queryParams.toString(), {
         headers: token ? { Authorization: `Bearer ` + token } : {}
       });
-
       if (response.ok) {
         const data = await response.json();
         setPosts(data.posts);
@@ -43,7 +41,6 @@ export default function Feed({ filters, posterId }: FeedProps) {
       }
       setLoading(false);
     };
-
     fetchPosts();
   }, [filters, posterId, token, currentPage]);
 
@@ -60,7 +57,7 @@ export default function Feed({ filters, posterId }: FeedProps) {
           alignItems: 'center'
         }}
       >
-        <Loader size='lg' />
+        <Loader size="lg" className={styles.loader} />
       </Container>
     );
   }

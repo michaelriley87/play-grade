@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '@/styles/components.module.css';
 import { Avatar, Card, Text, Group, Image, Stack, Title, ActionIcon, Tooltip, Badge } from '@mantine/core';
 import { IconThumbUp, IconMessageCircle, IconTrash } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -105,9 +106,11 @@ export default function Post({ post_id, poster_id, title, body, category, create
     >
       <Group justify='space-between' style={{ marginBottom: '20px' }}>
         <Group align='center'>
-          <Avatar src={profile_picture ? API_URL + profile_picture : undefined} alt={username || 'User'} radius='xl' size='lg' onClick={handleClickUser} style={{ cursor: pathname === '/user/' + poster_id ? 'default' : 'pointer' }}>
-            {!profile_picture && username?.charAt(0).toUpperCase()}
-          </Avatar>
+          <Tooltip label={username || 'Unknown User'} withArrow>
+            <Avatar src={profile_picture ? API_URL + profile_picture : undefined} radius='xl' size='lg' onClick={handleClickUser} style={{ cursor: pathname === '/user/' + poster_id ? 'default' : 'pointer' }}>
+              {!profile_picture && username?.charAt(0).toUpperCase()}
+            </Avatar>
+          </Tooltip>
           <Stack>
             <Title
               order={3}
@@ -135,7 +138,7 @@ export default function Post({ post_id, poster_id, title, body, category, create
       <Text size='md' c='dimmed' style={{ margin: '10px' }}>
         {body}
       </Text>
-      {image_url && <Image src={API_URL + image_url} alt={title} radius='md' style={{ marginBottom: '20px' }} />}
+      {image_url && <Image src={API_URL + image_url} alt={title} className={styles.image} />}
       <Group justify='space-between' align='center'>
         <Group>
           <Tooltip label={isLiked ? 'Unlike' : 'Like'} withArrow>

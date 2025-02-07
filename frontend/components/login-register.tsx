@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '@/styles/components.module.css';
 import { Card, TextInput, PasswordInput, Button, Tabs, Stack } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -14,7 +15,6 @@ export default function LoginRegister() {
   const [username, setUsername] = useState('');
   const { setToken } = useAuth();
   const router = useRouter();
-
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleAuth = async () => {
@@ -42,9 +42,7 @@ export default function LoginRegister() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-
       const data = await response.json();
-
       if (response.ok) {
         if (activeTab === 'login') {
           setToken(data.token);
@@ -70,8 +68,8 @@ export default function LoginRegister() {
   };
 
   return (
-    <Card withBorder style={{ width: '100%' }}>
-      <Stack>
+    <Card withBorder className={styles.card}>
+      <Stack className={styles.stack}>
         <Tabs
           value={activeTab}
           onChange={(tab: string | null) => {
@@ -82,7 +80,6 @@ export default function LoginRegister() {
             <Tabs.Tab value='login'>Login</Tabs.Tab>
             <Tabs.Tab value='register'>Register</Tabs.Tab>
           </Tabs.List>
-
           <Tabs.Panel value='login'>
             <form onSubmit={handleSubmit}>
               <Stack mt='md'>
@@ -94,7 +91,6 @@ export default function LoginRegister() {
               </Stack>
             </form>
           </Tabs.Panel>
-
           <Tabs.Panel value='register'>
             <form onSubmit={handleSubmit}>
               <Stack mt='md'>

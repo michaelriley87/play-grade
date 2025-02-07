@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '@/styles/components.module.css';
 import { Avatar, Button, Card, Flex, Title } from '@mantine/core';
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
@@ -29,7 +30,7 @@ export default function User({ userData }: UserProps) {
   };
 
   return (
-    <Card withBorder style={{ width: '100%' }}>
+    <Card withBorder className={styles.card}>
       <Flex direction='column' align='center' style={{ gap: '8px' }}>
         <Avatar src={userData.profile_picture ? API_URL + userData.profile_picture : undefined} radius='xl' size={100}>
           {!userData.profile_picture && userData.username.charAt(0).toUpperCase()}

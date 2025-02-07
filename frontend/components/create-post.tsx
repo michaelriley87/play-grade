@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '@/styles/components.module.css';
 import { Card, TextInput, Textarea, Button, FileInput, Image, Chip, Stack, Group, Text, Tooltip } from '@mantine/core';
 import imageCompression from 'browser-image-compression';
 import { useRouter } from 'next/navigation';
@@ -16,11 +17,10 @@ export default function CreatePost({ onClose }: CreatePostProps) {
   const [body, setBody] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
   const { token } = useAuth();
   const router = useRouter();
-
   const categoryOptions = ['🎮 Games', '🎥 Film/TV', '🎵 Music'];
+  const MAX_FILE_SIZE_MB = 1;
 
   const handleImageChange = async (file: File | null) => {
     if (!file) {
@@ -28,9 +28,6 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       setImagePreview(null);
       return;
     }
-
-    const MAX_FILE_SIZE_MB = 1;
-
     if (file.size / 1024 / 1024 > MAX_FILE_SIZE_MB) {
       try {
         const options = {
@@ -38,7 +35,6 @@ export default function CreatePost({ onClose }: CreatePostProps) {
           maxWidthOrHeight: 1024,
           useWebWorker: true
         };
-
         const compressedFile = await imageCompression(file, options);
         setImage(compressedFile);
         setImagePreview(URL.createObjectURL(compressedFile));
@@ -56,19 +52,16 @@ export default function CreatePost({ onClose }: CreatePostProps) {
       toast.error('Title, category, body, and image are required');
       return;
     }
-
     if (!token) {
       toast.error('You must be logged in to create a post');
       return;
     }
-
     try {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('category', category!);
       formData.append('body', body);
       formData.append('image', image);
-
       const response = await fetch(API_URL + '/posts', {
         method: 'POST',
         headers: {
@@ -76,9 +69,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         },
         body: formData
       });
-
       const data = await response.json();
-
       if (response.ok) {
         toast.success('Post created successfully!');
         router.push('/post/' + data.post_id);
@@ -97,8 +88,8 @@ export default function CreatePost({ onClose }: CreatePostProps) {
   };
 
   return (
-    <Card withBorder style={{ width: '100%' }}>
-      <Stack>
+    <Card withBorder className={styles.card}>
+      <Stack className={styles.stack}>
         <TextInput label='Title' placeholder='Enter title (max 100 characters)' maxLength={100} value={title} onChange={e => setTitle(e.target.value)} />
         <Stack>
           <Text size='sm'>Select Category</Text>
@@ -114,7 +105,7 @@ export default function CreatePost({ onClose }: CreatePostProps) {
         </Stack>
         <Textarea label='Body' placeholder='Enter body content (max 300 characters)' maxLength={300} value={body} onChange={e => setBody(e.target.value)} />
         <FileInput label='Upload an image' placeholder='Choose file' accept='image/*' onChange={handleImageChange} />
-        {imagePreview && <Image src={imagePreview} alt='Image Preview' radius='md' style={{ marginTop: '10px', maxWidth: '100%' }} />}
+        {imagePreview && <Image src={imagePreview} alt='Image Preview' className={styles.image} />}
         <Tooltip label={!token ? 'Please log in to create a post' : undefined} withArrow disabled={!!token}>
           <Button onClick={handleSubmit} fullWidth disabled={!token}>
             Create Post

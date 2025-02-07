@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '@/styles/components.module.css';
 import { Stack } from '@mantine/core';
 import Reply from '@/components/reply';
 import { ReplyFeedProps } from '@/types/interfaces';

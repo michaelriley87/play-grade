@@ -1,3 +1,4 @@
+import styles from '@/styles/components.module.css';
 import { Card, Chip, TextInput, Button, Stack, Group, ActionIcon } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
@@ -9,9 +10,7 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
   const userOptions = ['All Users', 'Followed Users'];
   const ageOptions = ['Today', 'Week', 'Month', 'Year', 'All'];
   const sortOptions = ['Newest', 'Most Liked', 'Most Comments'];
-
   const { user } = useAuth();
-
   const [selectedFilters, setSelectedFilters] = useState<string[]>(currentFilters.categories);
   const [users, setUsers] = useState(currentFilters.users);
   const [ageRange, setAgeRange] = useState(currentFilters.ageRange);
@@ -51,9 +50,8 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
   };
 
   return (
-    <Card withBorder style={{ width: '100%' }}>
-      <Stack>
-        {/* Category Filters */}
+    <Card withBorder className={styles.card}>
+      <Stack className={styles.stack}>
         <Group justify='center'>
           <Chip.Group multiple value={selectedFilters} onChange={handleFilterChange}>
             {categoryOptions.map(option => (
@@ -63,8 +61,6 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
             ))}
           </Chip.Group>
         </Group>
-
-        {/* User Options */}
         <Group justify='center'>
           <Chip.Group multiple={false} value={users} onChange={setUsers}>
             {userOptions.map(option => (
@@ -74,8 +70,6 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
             ))}
           </Chip.Group>
         </Group>
-
-        {/* Age Range */}
         <Group justify='center'>
           <Chip.Group multiple={false} value={ageRange} onChange={setAgeRange}>
             {ageOptions.map(option => (
@@ -85,8 +79,6 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
             ))}
           </Chip.Group>
         </Group>
-
-        {/* Sort By */}
         <Group justify='center'>
           <Chip.Group multiple={false} value={sortBy} onChange={setSortBy}>
             {sortOptions.map(option => (
@@ -96,8 +88,6 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
             ))}
           </Chip.Group>
         </Group>
-
-        {/* Search Textbox with Clear Button */}
         <TextInput
           label='Search'
           placeholder='Search by query...'
@@ -112,8 +102,6 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
             )
           }
         />
-
-        {/* Update Results Button */}
         <Button fullWidth onClick={handleUpdateResults}>
           Update Results
         </Button>

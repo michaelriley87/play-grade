@@ -1,5 +1,6 @@
 'use client';
 
+import styles from '@/styles/components.module.css';
 import { Avatar, Card, Text, Group, Stack, ActionIcon, Tooltip, Anchor, Image } from '@mantine/core';
 import { IconThumbUp, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
@@ -77,19 +78,20 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
   const canDelete = user && (user.user_id === replier_id || user.is_admin);
 
   return (
-    <Card withBorder style={{ width: '100%' }}>
+    <Card withBorder className={styles.card}>
       <Group align='flex-start'>
         <Anchor
           href={'/user/' + replier_id}
-          style={{ textDecoration: 'none' }}
           onClick={e => {
             e.stopPropagation();
             router.push('/user/' + replier_id);
           }}
         >
-          <Avatar src={profile_picture ? API_URL + profile_picture : undefined} alt={username || 'User'} radius='xl' size='md'>
-            {!profile_picture && username?.charAt(0).toUpperCase()}
-          </Avatar>
+          <Tooltip label={username || 'Unknown User'} withArrow>
+            <Avatar src={profile_picture ? API_URL + profile_picture : undefined} radius='xl' size='md'>
+              {!profile_picture && username?.charAt(0).toUpperCase()}
+            </Avatar>
+          </Tooltip>
         </Anchor>
         <Stack style={{ flexGrow: 1 }}>
           <Group align='center' justify='space-between'>
@@ -110,7 +112,7 @@ export default function Reply({ reply_id, replier_id, body, username, profile_pi
           <Text size='sm' c='dimmed'>
             {body}
           </Text>
-          {image_url && <Image src={API_URL + image_url} alt='Reply Image' radius='md' style={{ marginTop: '10px' }} />}
+          {image_url && <Image src={API_URL + image_url} alt='Reply Image' className={styles.image} />}
         </Stack>
       </Group>
       <Group justify='space-between' align='center' style={{ marginTop: '20px' }}>

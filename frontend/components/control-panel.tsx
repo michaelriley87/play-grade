@@ -13,6 +13,7 @@ export default function ControlsPanel({ filters, onUpdateFilters }: ControlsPane
   const { user } = useAuth();
   const [activeComponent, setActiveComponent] = useState<string>('');
 
+  // manage toggling between components
   const toggleComponent = (component: string) => {
     setActiveComponent(prev => (prev === component ? '' : component));
   };
@@ -21,7 +22,6 @@ export default function ControlsPanel({ filters, onUpdateFilters }: ControlsPane
 
   return (
     <Box style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-      {/* Buttons for toggling components */}
       <Button.Group>
         <Button onClick={() => toggleComponent('createPost')} variant={isActive('createPost') ? 'outline' : 'filled'}>
           Create Post
@@ -33,10 +33,7 @@ export default function ControlsPanel({ filters, onUpdateFilters }: ControlsPane
           {user ? 'Account' : 'Login'}
         </Button>
       </Button.Group>
-
-      {/* Transition containers */}
       <Box style={{ overflow: 'hidden', width: '100%' }}>
-        {/* Create Post */}
         <Transition mounted={activeComponent === 'createPost'} transition='slide-down' duration={300} timingFunction='ease-in-out'>
           {styles => (
             <Paper style={styles} shadow='md'>
@@ -44,8 +41,6 @@ export default function ControlsPanel({ filters, onUpdateFilters }: ControlsPane
             </Paper>
           )}
         </Transition>
-
-        {/* Filters */}
         <Transition mounted={activeComponent === 'filters'} transition='slide-down' duration={300} timingFunction='ease-in-out'>
           {styles => (
             <Paper style={styles} shadow='md'>
@@ -53,8 +48,6 @@ export default function ControlsPanel({ filters, onUpdateFilters }: ControlsPane
             </Paper>
           )}
         </Transition>
-
-        {/* Account or Login/Register */}
         <Transition mounted={activeComponent === 'account'} transition='slide-down' duration={300} timingFunction='ease-in-out'>
           {styles => (
             <Paper style={styles} shadow='md'>
