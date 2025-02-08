@@ -21,7 +21,7 @@ export default function UserPage() {
   // call to fetch user profile data for user component (posts retrieved in user-feed component)
   useEffect(() => {
     const fetchUser = async () => {
-      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers: HeadersInit = token ? { Authorization: 'Bearer ' + token } : {};
       const response = await fetch(API_URL + '/users/' + user_id, { headers });
       if (response.ok) {
         setUserData(await response.json());
@@ -37,7 +37,7 @@ export default function UserPage() {
         <Header />
         <BackButton />
         {loading ? (
-          <Loader size="lg" className={styles.loader} />
+          <Loader size='lg' className={styles.loader} />
         ) : userData ? (
           <>
             <User userData={userData} />

@@ -46,7 +46,7 @@ export default function PostPage() {
         <Header />
         <BackButton />
         {loading ? (
-          <Loader size="lg" className={styles.loader} />
+          <Loader size='lg' className={styles.loader} />
         ) : post ? (
           <>
             <Post {...post} />

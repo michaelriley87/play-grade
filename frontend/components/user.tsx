@@ -19,7 +19,7 @@ export default function User({ userData }: UserProps) {
       method,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: 'Bearer ' + token
       },
       body: JSON.stringify({ followee_id: userData.user_id })
     });

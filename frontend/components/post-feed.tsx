@@ -57,7 +57,7 @@ export default function Feed({ filters, posterId }: FeedProps) {
           alignItems: 'center'
         }}
       >
-        <Loader size="lg" className={styles.loader} />
+        <Loader size='lg' className={styles.loader} />
       </Container>
     );
   }

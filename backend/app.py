@@ -1,5 +1,3 @@
-
-from datetime import datetime, timedelta, timezone
 from bcrypt import checkpw, hashpw, gensalt
 from psycopg2.extras import RealDictCursor
 from flask import Flask, request, jsonify, send_from_directory
@@ -361,7 +359,278 @@ def get_user(current_user, user_id):
     finally:
         cur.close()
         conn.close()
-        
+
+# Update user profile picture
+@app.route('/users/<int:user_id>/profile-picture', methods=['PATCH'])
+@token_required
+def update_display_picture(decoded_token, user_id):
+    """
+    Update a user's display picture (Requires Authorization).
+    ---
+    tags:
+      - Users
+    description:
+      This endpoint allows a user to update their display picture by uploading an image file.
+      The user must provide a valid Bearer token in the Authorization header.
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        type: integer
+        description: ID of the user whose display picture is being updated.
+      - name: image
+        in: formData
+        required: true
+        type: file
+        description: New profile picture file (png, jpg, jpeg, gif).
+    responses:
+      200:
+        description: Display picture updated successfully.
+      400:
+        description: Invalid request (e.g., missing file, unsupported format).
+      403:
+        description: Unauthorized action.
+      404:
+        description: User not found.
+      500:
+        description: Server error.
+    security:
+      - Bearer: []
+    """
+    current_user_id = decoded_token['user_id']
+    is_admin = decoded_token['is_admin']
+    conn = None
+    cur = None
+
+    try:
+        file = request.files.get('image')
+        if not file:
+            return jsonify({"error": "Image file is required"}), 400
+
+        # Validate file type
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+        if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+            return jsonify({"error": "Invalid file type. Allowed: png, jpg, jpeg, gif"}), 400
+
+        file_extension = file.filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        file.save(filepath)
+        profile_picture_url = f"/uploads/{unique_filename}"
+
+        # Initialize DB connection
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Ensure user exists
+        cur.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+        user = cur.fetchone()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Check permissions
+        if current_user_id != user_id and not is_admin:
+            return jsonify({"error": "Unauthorized action"}), 403
+
+        # Update profile picture
+        cur.execute("UPDATE users SET profile_picture = %s WHERE user_id = %s", (profile_picture_url, user_id))
+        conn.commit()
+
+        return jsonify({"message": "Profile picture updated successfully", "profile_picture": profile_picture_url}), 200
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+# Update username
+@app.route('/users/<int:user_id>/username', methods=['PATCH'])
+@token_required
+def update_username(decoded_token, user_id):
+    """
+    Update a user's username (Requires Authorization).
+    ---
+    tags:
+      - Users
+    description:
+      This endpoint allows a user to update their username.
+      The user must provide a valid Bearer token in the Authorization header.
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        type: integer
+        description: ID of the user whose username is being updated.
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: New username (must be unique).
+              example: "new_username"
+    responses:
+      200:
+        description: Username updated successfully.
+      400:
+        description: Invalid request (e.g., missing username, already taken).
+      403:
+        description: Unauthorized action.
+      404:
+        description: User not found.
+      500:
+        description: Server error.
+    security:
+      - Bearer: []
+    """
+    current_user_id = decoded_token['user_id']
+    is_admin = decoded_token['is_admin']
+    
+    try:
+        data = request.get_json()
+        new_username = data.get('username')
+
+        if not new_username:
+            return jsonify({"error": "Missing username field"}), 400
+
+        # Ensure username is unique
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM users WHERE username = %s", (new_username,))
+        existing_user = cur.fetchone()
+
+        if existing_user:
+            return jsonify({"error": "Username is already taken"}), 400
+
+        # Ensure user exists
+        cur.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+        user = cur.fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Check permissions
+        if current_user_id != user_id and not is_admin:
+            return jsonify({"error": "Unauthorized action"}), 403
+
+        # Update username
+        cur.execute("UPDATE users SET username = %s WHERE user_id = %s", (new_username, user_id))
+        conn.commit()
+
+        return jsonify({"message": "Username updated successfully", "username": new_username}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+# Update user password
+@app.route('/users/<int:user_id>/password', methods=['PATCH'])
+@token_required
+def update_password(decoded_token, user_id):
+    """
+    Update a user's password (Requires Authorization).
+    ---
+    tags:
+      - Users
+    description:
+      This endpoint allows a user to update their password.
+      The user must provide their current password for verification.
+      The new password will be securely hashed before being stored.
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        type: integer
+        description: ID of the user whose password is being updated.
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - current_password
+            - new_password
+          properties:
+            current_password:
+              type: string
+              example: "oldpassword123"
+            new_password:
+              type: string
+              example: "NewSecurePassword456"
+    responses:
+      200:
+        description: Password updated successfully.
+      400:
+        description: Invalid request (e.g., missing fields).
+      401:
+        description: Incorrect current password.
+      403:
+        description: Unauthorized action.
+      404:
+        description: User not found.
+      500:
+        description: Server error.
+    security:
+      - Bearer: []
+    """
+    current_user_id = decoded_token['user_id']
+    is_admin = decoded_token['is_admin']
+
+    data = request.json
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+
+    if not current_password or not new_password:
+        return jsonify({"error": "Both current_password and new_password are required"}), 400
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Fetch user
+        cur.execute("SELECT password_hash FROM users WHERE user_id = %s", (user_id,))
+        user = cur.fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Check permissions
+        if current_user_id != user_id and not is_admin:
+            return jsonify({"error": "Unauthorized action"}), 403
+
+        # Verify current password
+        if not checkpw(current_password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+            return jsonify({"error": "Incorrect current password"}), 401
+
+        # Hash the new password
+        hashed_password = hashpw(new_password.encode('utf-8'), gensalt()).decode('utf-8')
+
+        # Update password in the database
+        cur.execute("UPDATE users SET password_hash = %s WHERE user_id = %s", (hashed_password, user_id))
+        conn.commit()
+
+        return jsonify({"message": "Password updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cur.close()
+        conn.close()
+
 # Delete user account
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 @token_required
