@@ -10,7 +10,7 @@ import os
 import uuid
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'action_comedy_crime_thriller'
+app.config['SECRET_KEY'] = os.getenv('PLAYGRADE_SECRET_KEY', 'default_secret_key')
 app.config['UPLOAD_FOLDER'] = './uploads'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 CORS(app)
@@ -22,7 +22,7 @@ swagger = Swagger(app, template={
         "description": "API documentation for Play Grade",
         "version": "1.0.0"
     },
-    "host": "127.0.0.1:5000",
+    "host": os.getenv('PLAYGRADE_SWAGGER_HOST', 'localhost'),
     "basePath": "/",
     "schemes": ["http"],
     "securityDefinitions": {
@@ -35,16 +35,16 @@ swagger = Swagger(app, template={
     }
 })
 
-DB_CONFIG = {
-    'dbname': 'play_grade',
-    'user': 'postgres',
-    'password': 'postgres',
-    'host': 'localhost'
+PLAYGRADE_DB_CONFIG = {
+    'dbname': os.getenv('PLAYGRADE_DB_NAME'),
+    'user': os.getenv('PLAYGRADE_DB_USER'),
+    'password': os.getenv('PLAYGRADE_DB_PASSWORD'),
+    'host': os.getenv('PLAYGRADE_DB_HOST')
 }
 
 # Connect to the database
 def get_db_connection():
-    return psycopg2.connect(**DB_CONFIG)
+    return psycopg2.connect(**PLAYGRADE_DB_CONFIG)
 
 # Decode JWT and enforce authentication
 def token_required(f):
