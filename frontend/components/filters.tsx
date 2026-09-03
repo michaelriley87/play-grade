@@ -1,7 +1,7 @@
 import styles from '@/styles/components.module.css';
 import { Card, Chip, TextInput, Button, Stack, Group, ActionIcon } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { FiltersProps } from '@/types/interfaces';
 
@@ -16,14 +16,6 @@ export default function Filters({ currentFilters, onUpdateFilters, onClose }: Fi
   const [ageRange, setAgeRange] = useState(currentFilters.ageRange);
   const [sortBy, setSortBy] = useState(currentFilters.sortBy);
   const [searchQuery, setSearchQuery] = useState(currentFilters.searchQuery);
-
-  useEffect(() => {
-    setSelectedFilters(currentFilters.categories);
-    setUsers(currentFilters.users);
-    setAgeRange(currentFilters.ageRange);
-    setSortBy(currentFilters.sortBy);
-    setSearchQuery(currentFilters.searchQuery);
-  }, [currentFilters]);
 
   const handleFilterChange = (values: string[]) => {
     if (values.length === 0) {

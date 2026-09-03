@@ -1,7 +1,7 @@
 'use client';
 
 import jwt from 'jsonwebtoken';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AuthData } from '@/types/interfaces';
 
 const AuthContext = createContext<AuthData>({
@@ -12,22 +12,18 @@ const AuthContext = createContext<AuthData>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(typeof window !== 'undefined' ? localStorage.getItem('token') : null);
-  const [user, setUser] = useState<AuthData['user']>(null);
+  const user = useMemo<AuthData['user']>(() => {
+    if (!token) return null;
 
-  useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwt.decode(token) as { user_id: any; is_admin: boolean };
-        setUser({
-          user_id: decoded.user_id,
-          is_admin: decoded.is_admin
-        });
-      } catch {
-        setUser(null);
-      }
-    } else {
-      setUser(null);
+    const decoded = jwt.decode(token);
+    if (!decoded || typeof decoded === 'string' || typeof decoded.user_id !== 'number' || typeof decoded.is_admin !== 'boolean') {
+      return null;
     }
+
+    return {
+      user_id: decoded.user_id,
+      is_admin: decoded.is_admin
+    };
   }, [token]);
 
   useEffect(() => {

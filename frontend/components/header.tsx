@@ -5,7 +5,7 @@ export default function Header() {
   return (
     <header style={{ textAlign: 'center' }}>
       <Link href='/'>
-        <Image src='/title-logo.png' style={{ margin: '20px 0', width: '100%' }} />
+        <Image src='/title-logo.png' alt='PlayGrade' style={{ margin: '20px 0', width: '100%' }} />
       </Link>
     </header>
   );

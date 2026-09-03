@@ -1,12 +1,12 @@
 {
-  "name": "mantine-minimal-next-template",
+  "name": "playgrade-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -16,7 +16,7 @@
     "@tabler/icons-react": "^3.28.1",
     "browser-image-compression": "^2.0.2",
     "jsonwebtoken": "^9.0.2",
-    "next": "^15.1.4",
+    "next": "^16.3.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-toastify": "^11.0.3"
@@ -26,8 +26,8 @@
     "@types/node": "20.14.8",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "eslint": "8.57.0",
-    "eslint-config-next": "14.2.4",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.3.4",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
     "postcss": "^8.4.38",
@@ -36,5 +36,8 @@
     "prettier": "^3.4.2",
     "typescript": "5.5.2"
   },
-  "packageManager": "yarn@4.6.0"
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "packageManager": "npm@11.16.0"
 }

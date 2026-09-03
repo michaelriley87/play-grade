@@ -41,7 +41,7 @@ export default function UserPage() {
         ) : userData ? (
           <>
             <User userData={userData} />
-            <PostFeed posterId={user_id} />
+            <PostFeed key={user_id} posterId={user_id} />
           </>
         ) : (
           <Text>User not found.</Text>

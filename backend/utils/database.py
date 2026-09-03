@@ -6,6 +6,7 @@ PLAYGRADE_DB_CONFIG = {
     "user": os.getenv("PLAYGRADE_DB_USER"),
     "password": os.getenv("PLAYGRADE_DB_PASSWORD"),
     "host": os.getenv("PLAYGRADE_DB_HOST"),
+    "port": os.getenv("PLAYGRADE_DB_PORT", "5432"),
 }
 
 

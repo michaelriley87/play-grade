@@ -44,10 +44,6 @@ export default function Feed({ filters, posterId }: FeedProps) {
     fetchPosts();
   }, [filters, posterId, token, currentPage]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, posterId]);
-
   if (loading) {
     return (
       <Container

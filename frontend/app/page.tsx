@@ -42,7 +42,7 @@ export default function HomePage() {
       <Stack className={styles.pageContent}>
         <Header />
         <ControlPanel filters={filters} onUpdateFilters={handleUpdateFilters} />
-        <PostFeed filters={filters} />
+        <PostFeed key={JSON.stringify(filters)} filters={filters} />
       </Stack>
     </Container>
   );

@@ -1,0 +1,71 @@
+name: playgrade
+
+x-database-environment: &database-environment
+  PLAYGRADE_DB_NAME: ${PLAYGRADE_DB_NAME:-playgrade}
+  PLAYGRADE_DB_USER: ${PLAYGRADE_DB_USER:-playgrade}
+  PLAYGRADE_DB_PASSWORD: ${PLAYGRADE_DB_PASSWORD:-playgrade_dev_password}
+  PLAYGRADE_DB_HOST: db
+  PLAYGRADE_DB_PORT: "5432"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${PLAYGRADE_DB_NAME:-playgrade}
+      POSTGRES_USER: ${PLAYGRADE_DB_USER:-playgrade}
+      POSTGRES_PASSWORD: ${PLAYGRADE_DB_PASSWORD:-playgrade_dev_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  migrate:
+    build:
+      context: ./backend
+    command: ["python", "migrate.py"]
+    environment: *database-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      <<: *database-environment
+      PLAYGRADE_SECRET_KEY: ${PLAYGRADE_SECRET_KEY:-local-development-secret-change-me}
+      PLAYGRADE_CORS_ORIGINS: ${PLAYGRADE_CORS_ORIGINS:-http://localhost:3000}
+      PLAYGRADE_MAX_UPLOAD_BYTES: ${PLAYGRADE_MAX_UPLOAD_BYTES:-2097152}
+      PLAYGRADE_UPLOAD_FOLDER: /app/uploads
+    ports:
+      - "5000:5000"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://localhost:5000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  uploads:
+

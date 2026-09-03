@@ -76,7 +76,8 @@ export default function Post({ post_id, poster_id, title, body, category, create
     });
 
     if (response.ok) {
-      window.location.href = '/';
+      router.push('/');
+      router.refresh();
     }
   };
 
