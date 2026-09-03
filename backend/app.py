@@ -28,24 +28,20 @@ CORS(app, origins=[origin.strip() for origin in cors_origins if origin.strip()])
 
 swagger = Swagger(
     app,
-    template={
-        "swagger": "2.0",
-        "info": {
-            "title": "Play Grade API",
-            "description": "API documentation for Play Grade",
-            "version": "1.0.0",
-        },
-        "host": os.getenv("PLAYGRADE_SWAGGER_HOST", "localhost"),
-        "basePath": "/",
-        "schemes": ["http"],
-        "securityDefinitions": {
-            "Bearer": {
-                "type": "apiKey",
-                "name": "Authorization",
-                "in": "header",
-                "description": "Enter 'Bearer <JWT>'",
+    template_file=os.path.join(os.path.dirname(__file__), "openapi.yaml"),
+    config={
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": "apispec_1",
+                "route": "/apispec_1.json",
+                "rule_filter": lambda rule: False,
+                "model_filter": lambda tag: True,
             }
-        },
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/",
     },
 )
 

@@ -12,6 +12,10 @@ ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
 RUN npm run build
 
+FROM dependencies AS test
+COPY . .
+CMD ["npm", "test"]
+
 FROM node:22-alpine AS runner
 ENV NODE_ENV=production \
     PORT=3000 \

@@ -91,3 +91,30 @@ npm run dev
 | `NEXT_PUBLIC_BACKEND_URL` | API URL reachable by the user's browser |
 
 Uploaded images and PostgreSQL data are kept in named Docker volumes so they survive container recreation.
+
+## Automated tests
+
+The backend integration suite runs against an isolated `playgrade_test` PostgreSQL database. The test database is migrated automatically and its application tables are cleared before and after every test.
+
+With the Docker stack running, execute:
+
+```powershell
+docker compose --profile test run --rm test
+```
+
+The test runner reports coverage for the Flask application, routes, and utilities. It never truncates the development `playgrade` database.
+
+Run the frontend component suite locally with:
+
+```powershell
+Set-Location frontend
+npm test
+```
+
+Use `npm run test:coverage` to generate frontend coverage output, including an HTML report in `frontend/coverage`.
+
+Alternatively, run the frontend tests in their Docker target:
+
+```powershell
+docker compose --profile test run --rm frontend-test
+```

@@ -494,7 +494,11 @@ def posts(app):
 
             # Filter by categories
             category_map = {"🎮 Games": "G", "🎥 Film/TV": "F", "🎵 Music": "M"}
-            requested_categories = request.args.getlist("categories")
+            requested_categories = [
+                category.strip()
+                for value in request.args.getlist("categories")
+                for category in value.split(",")
+            ]
             stored_categories = [
                 category_map[c] for c in requested_categories if c in category_map
             ]

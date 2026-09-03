@@ -25,6 +25,7 @@ services:
   migrate:
     build:
       context: ./backend
+      target: production
     command: ["python", "migrate.py"]
     environment: *database-environment
     depends_on:
@@ -35,6 +36,7 @@ services:
   backend:
     build:
       context: ./backend
+      target: production
     environment:
       <<: *database-environment
       PLAYGRADE_SECRET_KEY: ${PLAYGRADE_SECRET_KEY:-local-development-secret-change-me}
@@ -65,7 +67,29 @@ services:
       backend:
         condition: service_healthy
 
+  test:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      target: test
+    environment:
+      <<: *database-environment
+      PLAYGRADE_DB_NAME: playgrade_test
+      PLAYGRADE_DB_ADMIN_DB: postgres
+      PLAYGRADE_SECRET_KEY: automated-test-secret
+      PLAYGRADE_CORS_ORIGINS: http://localhost:3000
+      PLAYGRADE_UPLOAD_FOLDER: /tmp/playgrade-test-uploads
+      PYTHONPATH: /app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend-test:
+    profiles: ["test"]
+    build:
+      context: ./frontend
+      target: test
+
 volumes:
   postgres-data:
   uploads:
-

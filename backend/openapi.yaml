@@ -1,0 +1,476 @@
+swagger: "2.0"
+info:
+  title: PlayGrade API
+  description: API for the PlayGrade entertainment discussion platform.
+  version: 1.0.0
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: Enter a JWT as `Bearer <token>`.
+tags:
+  - name: System
+  - name: Users
+  - name: Posts
+  - name: Replies
+  - name: Likes
+  - name: Follows
+  - name: Files
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Check API health
+      responses:
+        200:
+          description: API is healthy
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+  /users/register:
+    post:
+      tags: [Users]
+      summary: Register a user
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/Registration"
+      responses:
+        201:
+          description: User registered
+        400:
+          description: Invalid or duplicate user details
+  /users/login:
+    post:
+      tags: [Users]
+      summary: Log in
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/Login"
+      responses:
+        200:
+          description: Login successful
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              token:
+                type: string
+        400:
+          description: Invalid credentials
+  /users/{user_id}:
+    parameters:
+      - $ref: "#/parameters/UserId"
+    get:
+      tags: [Users]
+      summary: Get a user profile
+      parameters:
+        - $ref: "#/parameters/OptionalAuthorization"
+      responses:
+        200:
+          description: User profile
+          schema:
+            $ref: "#/definitions/User"
+        404:
+          description: User not found
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: User deleted
+        403:
+          description: Not permitted
+        404:
+          description: User not found
+  /users/{user_id}/profile-picture:
+    patch:
+      tags: [Users]
+      summary: Update a profile picture
+      consumes:
+        - multipart/form-data
+      security:
+        - Bearer: []
+      parameters:
+        - $ref: "#/parameters/UserId"
+        - in: formData
+          name: image
+          required: true
+          type: file
+      responses:
+        200:
+          description: Profile picture updated
+        400:
+          description: Invalid image
+        403:
+          description: Not permitted
+  /users/{user_id}/username:
+    patch:
+      tags: [Users]
+      summary: Update a username
+      security:
+        - Bearer: []
+      parameters:
+        - $ref: "#/parameters/UserId"
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [username]
+            properties:
+              username:
+                type: string
+      responses:
+        200:
+          description: Username updated
+        400:
+          description: Invalid or duplicate username
+        403:
+          description: Not permitted
+  /users/{user_id}/password:
+    patch:
+      tags: [Users]
+      summary: Update a password
+      security:
+        - Bearer: []
+      parameters:
+        - $ref: "#/parameters/UserId"
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required: [current_password, new_password]
+            properties:
+              current_password:
+                type: string
+                format: password
+              new_password:
+                type: string
+                format: password
+      responses:
+        200:
+          description: Password updated
+        401:
+          description: Current password is incorrect
+        403:
+          description: Not permitted
+  /posts:
+    get:
+      tags: [Posts]
+      summary: List and filter posts
+      parameters:
+        - $ref: "#/parameters/OptionalAuthorization"
+        - in: query
+          name: page
+          type: integer
+          default: 1
+        - in: query
+          name: limit
+          type: integer
+          default: 10
+        - in: query
+          name: posterId
+          type: integer
+        - in: query
+          name: categories
+          type: string
+          description: Comma-separated display category names.
+        - in: query
+          name: users
+          type: string
+          enum: [All Users, Followed Users]
+        - in: query
+          name: ageRange
+          type: string
+          enum: [Today, Week, Month, Year, All]
+        - in: query
+          name: sortBy
+          type: string
+          enum: [Newest, Most Liked, Most Comments]
+        - in: query
+          name: searchQuery
+          type: string
+      responses:
+        200:
+          description: Paginated posts
+    post:
+      tags: [Posts]
+      summary: Create a post
+      consumes:
+        - multipart/form-data
+      security:
+        - Bearer: []
+      parameters:
+        - in: formData
+          name: title
+          required: true
+          type: string
+          maxLength: 100
+        - in: formData
+          name: body
+          required: true
+          type: string
+          maxLength: 300
+        - in: formData
+          name: category
+          required: true
+          type: string
+          enum: [🎮 Games, 🎥 Film/TV, 🎵 Music]
+        - in: formData
+          name: image
+          required: true
+          type: file
+      responses:
+        201:
+          description: Post created
+        400:
+          description: Invalid post
+  /posts/{post_id}:
+    parameters:
+      - $ref: "#/parameters/PostId"
+    get:
+      tags: [Posts]
+      summary: Get a post and its replies
+      parameters:
+        - $ref: "#/parameters/OptionalAuthorization"
+      responses:
+        200:
+          description: Post details and replies
+        404:
+          description: Post not found
+    delete:
+      tags: [Posts]
+      summary: Delete a post
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Post deleted
+        403:
+          description: Not permitted
+        404:
+          description: Post not found
+  /replies:
+    post:
+      tags: [Replies]
+      summary: Reply to a post
+      consumes:
+        - multipart/form-data
+      security:
+        - Bearer: []
+      parameters:
+        - in: formData
+          name: post_id
+          required: true
+          type: integer
+        - in: formData
+          name: body
+          required: true
+          type: string
+          maxLength: 300
+        - in: formData
+          name: image_url
+          type: file
+      responses:
+        201:
+          description: Reply created
+        400:
+          description: Invalid reply
+        404:
+          description: Post not found
+  /replies/{reply_id}:
+    delete:
+      tags: [Replies]
+      summary: Delete a reply
+      security:
+        - Bearer: []
+      parameters:
+        - $ref: "#/parameters/ReplyId"
+      responses:
+        200:
+          description: Reply deleted
+        403:
+          description: Not permitted
+        404:
+          description: Reply not found
+  /likes:
+    post:
+      tags: [Likes]
+      summary: Like a post or reply
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/TargetAction"
+      responses:
+        201:
+          description: Like created
+        400:
+          description: Invalid or duplicate like
+        404:
+          description: Target not found
+    delete:
+      tags: [Likes]
+      summary: Remove a like
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/TargetAction"
+      responses:
+        200:
+          description: Like removed
+        400:
+          description: Like does not exist
+  /follows:
+    post:
+      tags: [Follows]
+      summary: Follow a user
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/FollowAction"
+      responses:
+        201:
+          description: Follow created
+        400:
+          description: Invalid or duplicate follow
+        404:
+          description: User not found
+    delete:
+      tags: [Follows]
+      summary: Unfollow a user
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/FollowAction"
+      responses:
+        200:
+          description: Follow removed
+        400:
+          description: Follow does not exist
+  /uploads/{filename}:
+    get:
+      tags: [Files]
+      summary: Get an uploaded image
+      produces:
+        - image/png
+        - image/jpeg
+        - image/gif
+      parameters:
+        - in: path
+          name: filename
+          required: true
+          type: string
+      responses:
+        200:
+          description: Uploaded image
+          schema:
+            type: file
+        404:
+          description: File not found
+parameters:
+  UserId:
+    in: path
+    name: user_id
+    required: true
+    type: integer
+  PostId:
+    in: path
+    name: post_id
+    required: true
+    type: integer
+  ReplyId:
+    in: path
+    name: reply_id
+    required: true
+    type: integer
+  OptionalAuthorization:
+    in: header
+    name: Authorization
+    required: false
+    type: string
+    description: Optional `Bearer <token>` value.
+definitions:
+  Registration:
+    type: object
+    required: [username, email, password]
+    properties:
+      username:
+        type: string
+      email:
+        type: string
+        format: email
+      password:
+        type: string
+        format: password
+  Login:
+    type: object
+    required: [email, password]
+    properties:
+      email:
+        type: string
+        format: email
+      password:
+        type: string
+        format: password
+  User:
+    type: object
+    properties:
+      user_id:
+        type: integer
+      username:
+        type: string
+      profile_picture:
+        type: string
+      is_following:
+        type: boolean
+  TargetAction:
+    type: object
+    required: [target_id, type]
+    properties:
+      target_id:
+        type: integer
+      type:
+        type: string
+        enum: [post, reply]
+  FollowAction:
+    type: object
+    required: [followee_id]
+    properties:
+      followee_id:
+        type: integer
+
